@@ -21,7 +21,7 @@
  *  @param lexema: cadena de caracteres que representa el lexema
  *  @param next: puntero al siguiente token (Se usa para el encadenamiento en la tabla hash)
 */
-typedef struct {
+typedef struct token {
     int componente;
     char* lexema;
     struct token *next;
@@ -37,6 +37,13 @@ typedef token *hashTable[TABLE_SIZE];
  * @param tabla: tabla de hash que se inicializará
 */
 void initHashTable(hashTable tabla);
+
+
+/**
+ * @brief Función que libera la memoria asociada con la tabla de hash
+ * @param tabla: tabla de hash que se liberará
+*/
+void deleteHashTable(hashTable tabla);
 
 
 //------------------------------- Funciones Auxiliares ------------------------------
@@ -71,8 +78,9 @@ token *searchToken(hashTable tabla, char *lexema);
  * @brief Función que elimina un token en la tabla de hash
  * @param tabla: tabla de hash en la que se eliminará el token
  * @param lexema: lexema que se eliminará
+ * @return 1 si se ha eliminado correctamente, 0 si no esta en la tabla
 */
-void deleteToken(hashTable tabla, char *lexema);
+int deleteToken(hashTable tabla, char *lexema);
 
 /**
  * @brief Función que modifica el componente del token a modificar a la tabla hash

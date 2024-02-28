@@ -39,6 +39,32 @@ void initHashTable(hashTable tabla){
     //La tabla se inicializa vacía
 }
 
+/**
+ * @brief Función que libera la memoria asociada con la tabla de hash
+ * @param tabla: tabla de hash que se liberará
+*/
+void deleteHashTable(hashTable tabla){
+    // Recorremos la tabla
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        // Si hay tokens en esta posición
+        if (tabla[i] != NULL) {
+            // Recorremos la lista enlazada en esta posición de la tabla
+            token *actual = tabla[i];
+            while (actual != NULL) {
+                token *temp = actual; // Guardamos el token actual
+                actual = actual->next; // Avanzamos al siguiente token en la lista
+                free(temp->lexema); // Liberamos la memoria del lexema
+                free(temp); // Liberamos la memoria del token
+            }
+        }
+    }
+
+    // Liberamos la memoria de la tabla
+    free(tabla);
+
+    printf("Memoria liberada\n");
+}
+
 //------------------------------- Funciones ------------------------------
 
 
@@ -59,9 +85,10 @@ void printTable(hashTable tabla) {
             // Recorre la lista enlazada en esta posición de la tabla
             token *actual = tabla[i];
             while (actual != NULL) {
-                printf("%s | %d -> ", actual->lexema, actual->componente); // Imprime el lexema y el componente del token actual
+                printf("( %s | %d ) -> ", actual->lexema, actual->componente); // Imprime el lexema y el componente del token actual
                 actual = actual->next; // Avanza al siguiente token en la lista
             }
+            printf("\n"); // Nueva línea para el siguiente índice de la tabla
         }
     }
 
@@ -145,8 +172,10 @@ token *searchToken(hashTable tabla, char *lexema) {
  * @brief Función que elimina un token en la tabla de hash
  * @param tabla: tabla de hash en la que se eliminará el token
  * @param lexema: lexema que se eliminará
+ * @return 1 si se ha eliminado correctamente, 0 si no se ha encontrado el token
 */
-void deleteToken(hashTable tabla, char *lexema) {
+int deleteToken(hashTable tabla, char *lexema) {
+
     // Calculamos el índice de la tabla
     int index = hash(lexema);
 
@@ -173,15 +202,14 @@ void deleteToken(hashTable tabla, char *lexema) {
             // Liberar la memoria del token eliminado
             free(actual->lexema); // Liberamos la memoria del lexema
             free(actual); // Liberamos la memoria del token
-            return;
+            return 1;
         }
         // Avanzar en la lista
         anterior = actual;
         actual = actual->next;
     }
 
-    // Si no se ha encontrado el token
-    printf("No se ha encontrado el token\n");
+    return 0; // No se ha encontrado el token
 }
 
 
@@ -272,6 +300,11 @@ int main() {
 
     printf("\nImprimiendo la tabla de hash después de la eliminación:\n");
     printTable(tabla);
+
+    printf("\nEliminando el token 'token8':\n");
+    int delete = deleteToken(tabla, "token8");
+    if(delete == 0) printf("Token 'token8' no encontrado.\n");
+
 
     // Limpieza final: liberar toda la memoria asociada con la tabla de hash
     // Esto es algo que tendrías que implementar, ya que la tabla de hash puede tener listas enlazadas de tokens
