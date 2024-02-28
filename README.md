@@ -37,7 +37,3 @@ To use the lexical analyzer, compile all the source files and run the driver pro
 ## Contributing
 
 Contributions to improve the lexical analyzer are welcome. Please feel free to fork the repository, make changes, and submit a pull request with your enhancements.
-
-## License
-
-This project is open-source and available under the MIT license. See the LICENSE file for more details.
