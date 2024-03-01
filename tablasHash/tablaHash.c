@@ -32,7 +32,7 @@ unsigned int hash(char *string);
  * @param tabla: tabla de hash que se inicializará
  * @param size: tamaño de la tabla de hash
 */
-void initHashTable(hashTable *tabla, int size){
+int initHashTable(hashTable *tabla, int size){
 
     // Reservamos memoria para la tabla
     *tabla = (token **) malloc (sizeof(token*) * size);
@@ -40,7 +40,7 @@ void initHashTable(hashTable *tabla, int size){
     // Verificamos si la reserva de memoria fue exitosa
     if (*tabla == NULL) {
         perror("Failed to allocate memory for hash table");
-        exit(EXIT_FAILURE);
+        return 0;
     }
 
     // Inicializamos la tabla de hash
@@ -51,13 +51,18 @@ void initHashTable(hashTable *tabla, int size){
     TABLE_SIZE = size;
  
     //La tabla se inicializa vacía
+    return 1;
 }
 
 /**
  * @brief Función que libera la memoria asociada con la tabla de hash
  * @param tabla: tabla de hash que se liberará
+ * @return 1 si se ha liberado correctamente, 0 si no
 */
-void deleteHashTable(hashTable *tabla){
+int deleteHashTable(hashTable *tabla){
+
+    if(tabla == NULL)
+
     // Recorremos la tabla
     for (int i = 0; i < TABLE_SIZE; i++) {
         // Si hay tokens en esta posición
@@ -77,6 +82,8 @@ void deleteHashTable(hashTable *tabla){
     free(tabla);
 
     printf("Memoria liberada\n");
+
+    return 1;
 }
 
 /**

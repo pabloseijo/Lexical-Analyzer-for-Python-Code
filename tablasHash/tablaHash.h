@@ -4,6 +4,9 @@
  * @brief Fichero que contiene las funciones de la tabla de hash
 */
 
+#ifndef TABLAHASH_H 
+#define TABLAHASH_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,20 +38,23 @@ typedef token **hashTable; // El puntero a puntero se debe a que el tamaño de l
  * @brief Función que inicializa la tabla de hash
  * @param tabla: tabla de hash que se inicializará
  * @param size: tamaño de la tabla de hash
+ * @return 1 si se ha inicializado correctamente, 0 si no se ha podido inicializar
 */
-void initHashTable(hashTable *tabla, int size);
+int initHashTable(hashTable *tabla, int size);
 
 
 /**
  * @brief Función que libera la memoria asociada con la tabla de hash
  * @param tabla: tabla de hash que se liberará
+ * @return 1 si se ha liberado correctamente, 0 si no
 */
-void deleteHashTable(hashTable *tabla);
+int deleteHashTable(hashTable *tabla);
 
 /**
  * @brief Función que redimensiona la tabla de hash
  * @param tabla: tabla de hash que se redimensionará
  * @param newSize: nuevo tamaño de la tabla de hash
+ * @return 1 si se ha redimensionado correctamente, 0 si no
 */
 int resizeHashTable(hashTable *tabla, int newSize);
 
@@ -95,3 +101,5 @@ int deleteToken(hashTable tabla, char *lexema);
  * !IMPORTANTE: Esta función solo se usará en caso de que se modifique el componente léxico de un token
 */
 int modifyToken(hashTable tabla, char * lexema, int componente);
+
+#endif //TABLAHASH_H
