@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define TABLE_SIZE 10
 #define MAX_NAME 256 // Ponemos un tamaño máximo para los lexemas
 
 //--------------------------- Estructura ------------------------------
@@ -28,23 +27,30 @@ typedef struct token {
 } token;
 
 // Creamos un tipo hashTable para simplificar el manejo de la tabla de hash
-typedef token *hashTable[TABLE_SIZE];
+typedef token **hashTable; // El puntero a puntero se debe a que el tamaño de la tabla se determina en tiempo de ejecución
 
 //--------------------------- Inicialización ------------------------------
 
 /**
  * @brief Función que inicializa la tabla de hash
  * @param tabla: tabla de hash que se inicializará
+ * @param size: tamaño de la tabla de hash
 */
-void initHashTable(hashTable tabla);
+void initHashTable(hashTable *tabla, int size);
 
 
 /**
  * @brief Función que libera la memoria asociada con la tabla de hash
  * @param tabla: tabla de hash que se liberará
 */
-void deleteHashTable(hashTable tabla);
+void deleteHashTable(hashTable *tabla);
 
+/**
+ * @brief Función que redimensiona la tabla de hash
+ * @param tabla: tabla de hash que se redimensionará
+ * @param newSize: nuevo tamaño de la tabla de hash
+*/
+int resizeHashTable(hashTable *tabla, int newSize);
 
 //------------------------------- Funciones Auxiliares ------------------------------
 

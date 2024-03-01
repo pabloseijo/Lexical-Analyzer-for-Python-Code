@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include "tablaHash.h"
 
+//Nos serviremos de una variable global para el tamaño de la tabla hash
+int TABLE_SIZE = 0; // Tamaño de la tabla de hash
 
 //------ Inicialización de las funciones privadas auxiliares ---------
 
@@ -28,13 +30,25 @@ unsigned int hash(char *string);
 /**
  * @brief Función que inicializa la tabla de hash
  * @param tabla: tabla de hash que se inicializará
+ * @param size: tamaño de la tabla de hash
 */
-void initHashTable(hashTable tabla){
+void initHashTable(hashTable *tabla, int size){
+
+    // Reservamos memoria para la tabla
+    *tabla = (token **) malloc (sizeof(token*) * size);
+
+    // Verificamos si la reserva de memoria fue exitosa
+    if (*tabla == NULL) {
+        perror("Failed to allocate memory for hash table");
+        exit(EXIT_FAILURE);
+    }
 
     // Inicializamos la tabla de hash
-    for (int i = 0; i < TABLE_SIZE; i++){
-        tabla[i] = NULL;
+    for (int i = 0; i < size; i++){
+        (*tabla)[i] = NULL;
     }
+
+    TABLE_SIZE = size;
  
     //La tabla se inicializa vacía
 }
@@ -43,13 +57,13 @@ void initHashTable(hashTable tabla){
  * @brief Función que libera la memoria asociada con la tabla de hash
  * @param tabla: tabla de hash que se liberará
 */
-void deleteHashTable(hashTable tabla){
+void deleteHashTable(hashTable *tabla){
     // Recorremos la tabla
     for (int i = 0; i < TABLE_SIZE; i++) {
         // Si hay tokens en esta posición
         if (tabla[i] != NULL) {
             // Recorremos la lista enlazada en esta posición de la tabla
-            token *actual = tabla[i];
+            token *actual = *tabla[i];
             while (actual != NULL) {
                 token *temp = actual; // Guardamos el token actual
                 actual = actual->next; // Avanzamos al siguiente token en la lista
@@ -63,6 +77,65 @@ void deleteHashTable(hashTable tabla){
     free(tabla);
 
     printf("Memoria liberada\n");
+}
+
+/**
+ * @brief Función que redimensiona la tabla de hash
+ * @param tabla: tabla de hash que se redimensionará
+ * @param newSize: nuevo tamaño de la tabla
+ * @return 1 si se ha redimensionado correctamente, 0 si no
+*/
+int resizeHashTable(hashTable *tabla, int newSize) {
+
+    // Paso 1: Crear una nueva tabla de hash del nuevo tamaño que sera nuestra nueva tabla
+
+    hashTable nuevaTabla = (token **) malloc (sizeof(token *) * newSize);
+
+    if (nuevaTabla == NULL) {
+        printf("ERROR: Fallo al asignar nueva tabla de hash\n");
+        return 0;
+    }
+
+    // Paso 2: Inicializar la nueva tabla
+
+    for (int i = 0; i < newSize; i++) {
+        nuevaTabla[i] = NULL;
+    }
+
+    // Paso 3: Rehashear e insertar cada token de la tabla antigua en la nueva tabla
+
+    int oldSize = TABLE_SIZE; // Guardar el tamaño de la tabla antigua para recorrerla en el for
+    TABLE_SIZE = newSize; // Actualizar el tamaño de la tabla para la funcion hash
+
+    for (int i = 0; i < oldSize; i++) {
+
+        //Guardamos el token actual
+        token *actual = (*tabla)[i];
+
+        while (actual != NULL) {
+            // Guarda el próximo token antes de modificar el actual
+            token *siguiente = actual->next;
+
+            // Calcula el nuevo índice para el token actual basado en el nuevo tamaño de tabla
+            int nuevoIndice = hash(actual->lexema);
+
+            // Inserta el token en la nueva tabla (al principio de la lista en ese índice)
+            actual->next = nuevaTabla[nuevoIndice];
+            nuevaTabla[nuevoIndice] = actual;
+
+            // Avanza al siguiente token en la lista original
+            actual = siguiente;
+        }
+    }
+
+    // Paso 4: Liberar la memoria de la tabla antigua (solo el array de punteros, no los tokens)
+    free(*tabla);
+
+    // Paso 5: Actualizar el puntero de la tabla a la nueva tabla y el tamaño de la tabla
+    *tabla = nuevaTabla;
+    TABLE_SIZE = newSize;
+
+    return 1;
 }
 
 //------------------------------- Funciones ------------------------------
@@ -94,8 +167,6 @@ void printTable(hashTable tabla) {
 
     printf("END\n");
 }
-
-
 
 /**
  * @brief Función que inserta un token en la tabla de hash
@@ -183,6 +254,8 @@ int deleteToken(hashTable tabla, char *lexema) {
     token *actual = tabla[index]; // Token actual
     token *anterior = NULL; // Token anterior
 
+    printf("hola\n");
+
     while (actual != NULL) {
         //Comparamos los strings, si son iguales, eliminamos el token
         if (strcmp(actual->lexema, lexema) == 0) {
@@ -208,6 +281,8 @@ int deleteToken(hashTable tabla, char *lexema) {
         anterior = actual;
         actual = actual->next;
     }
+
+   
 
     return 0; // No se ha encontrado el token
 }
@@ -238,77 +313,27 @@ int modifyToken(hashTable tabla, char * lexema, int componente){
 //------------------------------- Funciones privadas auxiliares ------------------------------
 
 /**
- * @brief Estructura de la tabla de hash
+ * @brief Estructura de la tabla de hash (Es donde se produce la magia del hash)
  * @param string: cadena de caracteres que representa el lexema
  * @return hash: valor hash del lexema
 */
 unsigned int hash(char *string){
 
-    // Primero calculamos la longitud del lexema
-    int legth = strnlen(string, MAX_NAME);
+    unsigned int hash = 0; // Inicializamos el valor hash a 0
+    int c; // Variable para recorrer la cadena de caracteres
 
-    unsigned int hash = 0;
+    // Usamos una constante de multiplicación prima para la dispersión, puesto que los primos tienen una capacidad de dispersión muy buena
+    const unsigned int prime = 31;
 
-    // Recorreremos el lexema
-    for(int i = 0; i < legth; i++){
-
-        hash += string[i]; // Sumamos el valor ASCII de cada caracter
-
-        // Ahora para conseguir que los valores se dispersen y evitar las colisiones, mulitplicaremos el valor de hash 
-        // por el valor ASCII de cada caracter, y para asegurarnos de que el valor no se desborde, lo dividiremos por 
-        // el tamaño de la tabla y nos quedaremos con el resto
-        hash = (hash * string[i]) % TABLE_SIZE; 
+    // Utilizaremos un hash muy específico en este caso, que consiste en entremezclar operaciones 
+    // de multiplicación y XOR para conseguir una operación bit a bit y asi conseguir una 
+    // dispersión muy buena. La operación XOR (^ c) es una operación no lineal, por lo que los 
+    // cambios mas pequeños pueden significar cambios muy grandes en el resultado final, lo que 
+    // mejora la dispersión de los datos en la tabla
+    for(int i = 0; i < strlen(string); i++){
+        c = string[i]; // Obtenemos el valor ASCII del caracter
+        hash = (hash * prime) ^ c; // Operaciones bit a bit para mezclar los bits
     }
 
-    return hash;
-}
-
-//------------------------------- Función principal ------------------------------
-int main() {
-    hashTable tabla;
-    initHashTable(tabla);
-
-    printf("Insertando tokens...\n");
-    insertToken(tabla, "token1", 1);
-    insertToken(tabla, "token2", 2);
-    insertToken(tabla, "token3", 3);
-
-    printf("\nImprimiendo la tabla de hash después de las inserciones:\n");
-    printTable(tabla);
-
-    printf("\nBuscando token 'token2' en la tabla:\n");
-    token *t = searchToken(tabla, "token2");
-    if (t != NULL) {
-        printf("Encontrado: %s, Componente: %d\n", t->lexema, t->componente);
-    } else {
-        printf("Token no encontrado.\n");
-    }
-
-    printf("\nModificando el componente del token 'token2' a 20:\n");
-    if (modifyToken(tabla, "token2", 20)) {
-        printf("Token modificado correctamente.\n");
-    } else {
-        printf("Error al modificar el token.\n");
-    }
-
-    printf("\nImprimiendo la tabla de hash después de la modificación:\n");
-    printTable(tabla);
-
-    printf("\nEliminando el token 'token2':\n");
-    deleteToken(tabla, "token2");
-    printf("Token 'token2' eliminado.\n");
-
-    printf("\nImprimiendo la tabla de hash después de la eliminación:\n");
-    printTable(tabla);
-
-    printf("\nEliminando el token 'token8':\n");
-    int delete = deleteToken(tabla, "token8");
-    if(delete == 0) printf("Token 'token8' no encontrado.\n");
-
-
-    // Limpieza final: liberar toda la memoria asociada con la tabla de hash
-    // Esto es algo que tendrías que implementar, ya que la tabla de hash puede tener listas enlazadas de tokens
-    // Puedes crear una función 'freeHashTable' que recorra la tabla y libere todos los tokens y sus lexemas
-
-    return 0;
+    return hash % TABLE_SIZE; // Devolvemos el valor hash módulo el tamaño de la tabla
 }
