@@ -59,6 +59,8 @@
   "files.associations": {
     "definiciones.h": "c",
     "ctype.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "stdlib.h": "c",
+    "tablasimbolos.h": "c"
   }
 }

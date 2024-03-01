@@ -10,6 +10,8 @@
 #include <ctype.h>
 #include "analizadorLexico.h"
 #include "../definiciones.h"
+#include "../tablaSimbolos/tablaSimbolos.h"
+#include "../tablasHash/tablaHash.h"
 
 //--------------------------- Declaración de Funciones Privadas ------------------------------
 
