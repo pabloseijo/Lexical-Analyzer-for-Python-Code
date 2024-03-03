@@ -41,14 +41,14 @@ int inicializarTabla(hashTable *tabla){
     //--------------------------- Inicialización de la tabla ------------------------------
 
     // Inicializamos la tabla de hash con el tamño del array de keywords
-    if(initHashTable(tabla, sizeof(keywords)/sizeof(keywords[0])) == 0){
+    if(initHashTable(tabla, 15) == 0){
         printf("Error al inicializar la tabla de hash\n");
         return 0;
     }
 
     // Insertamos las palabras reservadas en la tabla de hash
     for(int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++){
-        if(insertToken(*tabla, keywords[i], i + 300) == 0){
+        if(insertToken(tabla, keywords[i], i + 300) == 0){
             printf("Error al insertar el token %s en la tabla de hash\n", keywords[i]);
         }
     }
@@ -80,7 +80,7 @@ void imprimirTabla(hashTable tabla){
  * @param tabla: tabla de símbolos en la que se insertará el componente léxico
  * @return 1 si se ha insertado correctamente, 0 si no se ha podido insertar
 */
-int insertarElemento(token t, token * tabla[]){
+int insertarElemento(token t, hashTable *tabla){
     return insertToken(tabla, t.lexema, t.componente);
 }
 
@@ -92,7 +92,7 @@ int insertarElemento(token t, token * tabla[]){
  * @param tabla: tabla de símbolos en la que se modificará el componente léxico
 */
 int modificarElemento(token t, hashTable tabla){
-    return modifyToken(tabla, t.lexema, t.componente);
+    return modifyToken(&tabla, t.lexema, t.componente);
 }
 
 /**
@@ -100,11 +100,10 @@ int modificarElemento(token t, hashTable tabla){
  * @param t: variable de tipo token que contiene el componente léxico a buscar, y que será 
  *          comparado con los elementos de la tabla y modificara el componente léxico de t
  * @param tabla: tabla de símbolos en la que se buscará el componente léxico
- * @return token con el componente léxico buscado
+ * @return token con el componente léxico buscado (si no se encuentra el lexema, el componente léxico será 0)
 */
-token buscarElemento(char *lexema, hashTable tabla){
-    token *t = searchToken(tabla, lexema);
-    return *t;
+int buscarElemento(char *lexema, hashTable tabla){
+    return searchToken(tabla, lexema);
 }
 
 /**

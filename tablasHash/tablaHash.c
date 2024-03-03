@@ -13,6 +13,7 @@
 
 //Nos serviremos de una variable global para el tamaño de la tabla hash
 int TABLE_SIZE = 0; // Tamaño de la tabla de hash
+int NUMBER_OF_ELEMENTS = 0; // Número de elementos en la tabla de hash
 
 //------ Inicialización de las funciones privadas auxiliares ---------
 
@@ -95,13 +96,14 @@ int deleteHashTable(hashTable *tabla){
 int resizeHashTable(hashTable *tabla, int newSize) {
 
     // Paso 1: Crear una nueva tabla de hash del nuevo tamaño que sera nuestra nueva tabla
-
+    
     hashTable nuevaTabla = (token **) malloc (sizeof(token *) * newSize);
 
     if (nuevaTabla == NULL) {
         printf("ERROR: Fallo al asignar nueva tabla de hash\n");
         return 0;
     }
+
 
     // Paso 2: Inicializar la nueva tabla
 
@@ -182,10 +184,10 @@ void printTable(hashTable tabla) {
  * @param componente: componente léxico que se insertará
  * @return true si se ha insertado correctamente, false si no
 */
-int insertToken(hashTable tabla, char *lexema, int componente){
+int insertToken(hashTable *tabla, char *lexema, int componente){
 
     // Comprobamos que la tabla no sea nula
-    if (tabla == NULL) return 0; 
+    if (*tabla == NULL) return 0; 
 
     // Calculamos el indice de la tabla 
     int index = hash(lexema);
@@ -204,27 +206,36 @@ int insertToken(hashTable tabla, char *lexema, int componente){
     nuevoToken->next = NULL; // Inicializamos el puntero al siguiente token a NULL
 
     // Si la posición de la tabla está vacía, simplemente insertamos el token
-    if (tabla[index] == NULL) {
-        tabla[index] = nuevoToken;
+    if ((*tabla)[index] == NULL) {
+        (*tabla)[index] = nuevoToken;
     } 
     // Si ya hay un token en esa posición, lo añadimos al final de la lista enlazada
     else {
         // Para añadirlo en la lista enlazada, simplemente hacemos que el nuevo token.next apunte al token que ya estaba en la tabla y tabla
         //[index] apunte al nuevo token
-        nuevoToken->next = tabla[index];
-        tabla[index] = nuevoToken;
+        nuevoToken->next = (*tabla)[index];
+        (*tabla)[index] = nuevoToken;
     }
 
-    return 0;
+    NUMBER_OF_ELEMENTS++; // Aumentamos el número de elementos en la tabla
+
+    // Una parte muy importante de las tablas hash es el factor de carga, el cual nos indicará cuando debemos redimensionar la tabla
+    // Por tanto si al insertar un elemento el factor de carga (numero de elementos / tamaño de la tabla) es mayor que 0.75, redimensionamos la tabla,
+    // multiplicando el tamaño de la tabla por 2
+    if(NUMBER_OF_ELEMENTS/TABLE_SIZE > 0.75){
+        resizeHashTable(tabla, TABLE_SIZE * 2);
+    }
+
+    return 1;
 }
 
 /**
  * @brief Función que busca un token en la tabla de hash
  * @param tabla: tabla de hash en la que se buscará el token
  * @param lexema: lexema que se buscará
- * @return token si se ha encontrado, NULL si no
+ * @return componente léxico si se ha encontrado el token, 0 si no
 */
-token *searchToken(hashTable tabla, char *lexema) {
+int searchToken(hashTable tabla, char *lexema) {
     // Calculamos el índice de la tabla
     int index = hash(lexema);
 
@@ -233,16 +244,16 @@ token *searchToken(hashTable tabla, char *lexema) {
     
     // Recorrermos la lista enlazada hasta llegar al ultimo elemento, en el cual el puntero next apuntará a NULL
     while (actual != NULL) {
+
         if (strcmp(actual->lexema, lexema) == 0) {
-            printf("Token encontrado\n");
-            return actual; // Token encontrado
+
+            return actual->componente; // Token encontrado
         }
         actual = actual->next; // Pasamos al siguiente token en la lista
     }
 
     // Si llegamos al final de la lista sin encontrar el lexema
-    printf("No se ha encontrado el token\n");
-    return NULL;
+    return 0;
 }
 
 
@@ -266,8 +277,6 @@ int deleteToken(hashTable tabla, char *lexema) {
     while (actual != NULL) {
         //Comparamos los strings, si son iguales, eliminamos el token
         if (strcmp(actual->lexema, lexema) == 0) {
-
-            printf("Token eliminado\n");
 
             if (anterior == NULL) {
                 // El token a eliminar está al principio de la lista
@@ -300,19 +309,25 @@ int deleteToken(hashTable tabla, char *lexema) {
  * @param tabla: tabla de hash en la que se modificará el token
  * @param t: token que se modificará
 */
-int modifyToken(hashTable tabla, char * lexema, int componente){
+int modifyToken(hashTable *tabla, char * lexema, int componente){
 
     //                       ! IMPORTANTE !
     // ! Esta función solo sirve para la modificación del componente léxico !
 
     // Buscamos el token en la tabla
-    token * t = searchToken(tabla, lexema);
+    int componenteAux = searchToken(*tabla, lexema);
 
     // Si no se ha encontrado el token, devolvemos 0
-    if(t == NULL) return 0;
+    if(componenteAux == 0) return 0;
+
     // Si se ha encontrado el token, modificamos el componente
     else {
-        t->componente = componente;
+        // Borramos el token de la tabla
+        deleteToken(*tabla, lexema);
+
+        // Insertamos el token modificado en la tabla
+        insertToken(tabla, lexema, componente);
+        
         return 1;
     } 
 }

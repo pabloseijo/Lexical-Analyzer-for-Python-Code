@@ -70,21 +70,22 @@ void printTable(hashTable tabla);
 //--------------------------- Funciones de Interacción ------------------------------
 
 /**
- * @brief Función que inserta un token en la tabla de hash por el método de encadenamiento
+ * @brief Función que inserta un token en la tabla de hash por el método de encadenamiento. 
+ *      Si el factor de carga supera el 0.75, se redimensiona la tabla
  * @param tabla: tabla de hash en la que se insertará el token
  * @param lexema: lexema que se insertará
  * @param componente: componente léxico que se insertará
  * @return true si se ha insertado correctamente, false si no
 */
-int insertToken(hashTable tabla, char *lexema, int componente);
+int insertToken(hashTable *tabla, char *lexema, int componente);
 
 /**
  * @brief Función que busca un token en la tabla de hash
  * @param tabla: tabla de hash en la que se buscará el token
  * @param lexema: lexema que se buscará
- * @return token si se ha encontrado, NULL si no
+ * @return componente si se ha encontrado, 0 si no
 */
-token *searchToken(hashTable tabla, char *lexema);
+int searchToken(hashTable tabla, char *lexema);
 
 /**
  * @brief Función que elimina un token en la tabla de hash
@@ -100,6 +101,6 @@ int deleteToken(hashTable tabla, char *lexema);
  * @param t: token que se modificará
  * !IMPORTANTE: Esta función solo se usará en caso de que se modifique el componente léxico de un token
 */
-int modifyToken(hashTable tabla, char * lexema, int componente);
+int modifyToken(hashTable *tabla, char * lexema, int componente);
 
 #endif //TABLAHASH_H

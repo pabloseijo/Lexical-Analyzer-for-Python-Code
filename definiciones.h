@@ -10,7 +10,7 @@
 
 //--------------------------- Definiciones ------------------------------
 
-// Definiciones para las keywords
+// Definiciones para las keywords 
 #define FOR 300
 #define IF 301
 #define ELSE 302

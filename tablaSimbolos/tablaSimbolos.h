@@ -12,6 +12,11 @@
  * @note En cualquier caso la tabla hash hace uso de punteros dobles (array de structuras) para la 
  * correcta implementación dinámica de esta, por lo que puede resultar complicado la compresión de 
  * la misma. Esto hace que la abstractización de la tabla de símbolos sea necesaria.
+ * 
+ * @note Para facilitar tambien la comprensión de la tabla de símbolos, se muestra en un comentario
+ * la estructura que compone un token, que es cada uno de los elementos de la tabla Hash, y por tanto
+ * de la tabla de símbolos. La compresión de esta estructura es clave para entender el funcionamiento
+ * del programa.
 */
 
 #ifndef TABLASIMBOLOS_H
@@ -21,8 +26,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "definiciones.h"
+#include "../definiciones.h"
 #include "../tablasHash/tablaHash.h"
+
+/**
+ * La estructura token es la siguiente:
+ * 
+ * @brief Estructura del token que constituye el componente léxico
+ * @param componente: codigo del componente lexico
+ * @param lexema: cadena de caracteres que representa el lexema
+ * @param next: puntero al siguiente token (Se usa para el encadenamiento en la tabla hash)
+ * 
+ * typedef struct token {
+ *      int componente;
+ *       char* lexema;
+ *       struct token *next;
+ *   } token;
+*/
 
 //------------------------------- Funciones de Estructura ------------------------------
 
@@ -54,7 +74,7 @@ void imprimirTabla(hashTable tabla);
  * @param tabla: tabla de símbolos en la que se insertará el componente léxico
  * @return 1 si se ha insertado correctamente, 0 si no se ha podido insertar
 */
-int insertarElemento(token t, token * tabla[]);
+int insertarElemento(token t, hashTable *tabla);
 
 /**
  * @brief Función que modifica un elemento en la tabla de símbolos es importante entender que el 
@@ -70,9 +90,9 @@ int modificarElemento(token t, hashTable tabla);
  * @param t: variable de tipo token que contiene el componente léxico a buscar, y que será 
  *          comparado con los elementos de la tabla y modificara el componente léxico de t
  * @param tabla: tabla de símbolos en la que se buscará el componente léxico
- * @return token con el componente léxico buscado
+ * @return componente si se ha encontrado, 0 si no
 */
-token buscarElemento(char *lexema, hashTable tabla);
+int buscarElemento(char *lexema, hashTable tabla);
 
 /**
  * @brief Función que borra un elemento en la tabla de símbolos
