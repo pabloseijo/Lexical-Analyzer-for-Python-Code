@@ -184,6 +184,9 @@ void automataID(char *sig, token *t){
 
     char cadena[30]; // Cadena que almacenará el lexema leido
     int index = 0; // Índice de la cadena
+    
+
+    char *lexema = NULL; // Lexema que almacenará el lexema leido
 
     /**
      * AUTÓMATA PARA EL COMPONENTE LÉXICO ID
@@ -234,9 +237,9 @@ void automataID(char *sig, token *t){
 
             // Estado 2: Aceptación
             case 2:
-                // Cuando llegamos al estadoii de aceptacion, hacemos una reserva de memoria con la memoria justa para 
+                // Cuando llegamos al estado de aceptacion, hacemos una reserva de memoria con la memoria justa para 
                 // almacenar el lexema
-                char *lexema = (char*) malloc (sizeof(char) * index);
+                lexema = (char*) malloc (sizeof(char) * (index + 1));
 
                 // Copiamos la cadena en el lexema
                 for(int i = 0 ; i < index; i++){
@@ -271,6 +274,8 @@ void automataNums(char *sig, token *t){
 
     char cadena[30]; // Cadena que almacenará el lexema leido
     int index = 0; // Índice de la cadena
+
+    char *lexema = NULL; // Lexema que almacenará el lexema leido
 
     /**
      * AUTÓMATA PARA EL COMPONENTE LÉXICO NÚMEROS
@@ -315,7 +320,7 @@ void automataNums(char *sig, token *t){
             case 2:
                 // Cuando llegamos al estadoii de aceptacion, hacemos una reserva de memoria con la memoria justa para 
                 // almacenar el lexema
-                char *lexema = (char*) malloc (sizeof(char) * index);
+                lexema = (char*) malloc (sizeof(char) * index);
 
                 // Copiamos la cadena en el lexema
                 for(int i = 0 ; i < index; i++){

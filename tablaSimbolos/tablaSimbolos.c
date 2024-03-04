@@ -103,7 +103,7 @@ int modificarElemento(token t, hashTable tabla){
  * @return token con el componente léxico buscado (si no se encuentra el lexema, el componente léxico será 0)
 */
 int buscarElemento(char *lexema, hashTable tabla){
-    return searchToken(tabla, lexema);
+    return searchTokenComponent(tabla, lexema);
 }
 
 /**

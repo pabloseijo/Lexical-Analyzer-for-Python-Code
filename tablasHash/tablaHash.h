@@ -1,7 +1,11 @@
 /**
+ * @file tablaHash.h
  * @author Pablo Seijo García
  * @date 21/02/2024
- * @brief Fichero que contiene las funciones de la tabla de hash
+ * @brief Define una estructura y operaciones básicas para manejar una 
+ * tabla de hash para tokens.
+ * La tabla utiliza encadenamiento para resolver colisiones y se 
+ * redimensiona dinámicamente para mantener un factor de carga óptimo.
 */
 
 #ifndef TABLAHASH_H 
@@ -15,92 +19,79 @@
 
 #define MAX_NAME 256 // Ponemos un tamaño máximo para los lexemas
 
-//--------------------------- Estructura ------------------------------
-
-/**
- *  @brief Estructura del token que constituye el componente léxico
- *  @param componente: codigo del componente lexico
- *  @param lexema: cadena de caracteres que representa el lexema
- *  @param next: puntero al siguiente token (Se usa para el encadenamiento en la tabla hash)
-*/
+// Estructura para almacenar componentes léxicos.
 typedef struct token {
-    int componente;
-    char* lexema;
-    struct token *next;
+    int componente;  // Código numérico del componente léxico.
+    char *lexema;    // Representación textual del token.
+    struct token *next; // Para manejar colisiones mediante listas enlazadas.
 } token;
 
-// Creamos un tipo hashTable para simplificar el manejo de la tabla de hash
-typedef token **hashTable; // El puntero a puntero se debe a que el tamaño de la tabla se determina en tiempo de ejecución
-
-//--------------------------- Inicialización ------------------------------
-
+// Alias para mejorar la legibilidad del código al trabajar con la tabla de hash.
+typedef token **hashTable;
 /**
- * @brief Función que inicializa la tabla de hash
- * @param tabla: tabla de hash que se inicializará
- * @param size: tamaño de la tabla de hash
- * @return 1 si se ha inicializado correctamente, 0 si no se ha podido inicializar
-*/
+ * Inicializa la tabla de hash con un tamaño especificado.
+ * Reserva memoria para la tabla y la inicializa a NULL.
+ * @param tabla Puntero a la tabla de hash.
+ * @param size Tamaño de la tabla.
+ * @return 1 si la inicialización fue exitosa, 0 en caso de error.
+ */
 int initHashTable(hashTable *tabla, int size);
 
 
 /**
- * @brief Función que libera la memoria asociada con la tabla de hash
- * @param tabla: tabla de hash que se liberará
- * @return 1 si se ha liberado correctamente, 0 si no
-*/
+ * Libera la memoria asociada con la tabla de hash y sus elementos.
+ * @param tabla Puntero a la tabla de hash.
+ * @return Siempre devuelve 1.
+ */
 int deleteHashTable(hashTable *tabla);
 
 /**
- * @brief Función que redimensiona la tabla de hash
- * @param tabla: tabla de hash que se redimensionará
- * @param newSize: nuevo tamaño de la tabla de hash
- * @return 1 si se ha redimensionado correctamente, 0 si no
-*/
+ * Redimensiona la tabla de hash a un nuevo tamaño.
+ * @param tabla Puntero a la tabla de hash.
+ * @param newSize Nuevo tamaño de la tabla.
+ * @return 1 si la redimensión fue exitosa, 0 en caso de error.
+ */
 int resizeHashTable(hashTable *tabla, int newSize);
 
-//------------------------------- Funciones Auxiliares ------------------------------
-
 /**
- * @brief Función que imprime la tabla hash
+ * Imprime la tabla hash con cada lexema y su componente léxico.
  * @param tabla: tabla de hash que se imprimirá
 */
 void printTable(hashTable tabla);
 
-
-//--------------------------- Funciones de Interacción ------------------------------
-
 /**
- * @brief Función que inserta un token en la tabla de hash por el método de encadenamiento. 
- *      Si el factor de carga supera el 0.75, se redimensiona la tabla
- * @param tabla: tabla de hash en la que se insertará el token
- * @param lexema: lexema que se insertará
- * @param componente: componente léxico que se insertará
- * @return true si se ha insertado correctamente, false si no
-*/
+ * Inserta un nuevo token en la tabla de hash.
+ * Si el factor de carga supera 0.75, se redimensiona la tabla.
+ * @param tabla Puntero a la tabla de hash.
+ * @param lexema Lexema del token.
+ * @param componente Componente léxico del token.
+ * @return 1 si la inserción fue exitosa, 0 en caso contrario.
+ */
 int insertToken(hashTable *tabla, char *lexema, int componente);
 
 /**
- * @brief Función que busca un token en la tabla de hash
- * @param tabla: tabla de hash en la que se buscará el token
- * @param lexema: lexema que se buscará
- * @return componente si se ha encontrado, 0 si no
-*/
-int searchToken(hashTable tabla, char *lexema);
+ * Busca un token en la tabla de hash por su lexema.
+ * @param tabla Tabla de hash.
+ * @param lexema Lexema del token a buscar.
+ * @return Componente léxico del token si se encuentra, 0 si no se encuentra.
+ */
+int searchTokenComponent(hashTable tabla, char *lexema);
 
 /**
- * @brief Función que elimina un token en la tabla de hash
- * @param tabla: tabla de hash en la que se eliminará el token
- * @param lexema: lexema que se eliminará
- * @return 1 si se ha eliminado correctamente, 0 si no esta en la tabla
-*/
+ * Elimina un token de la tabla de hash.
+ * @param tabla Tabla de hash.
+ * @param lexema Lexema del token a eliminar.
+ * @return 1 si el token fue eliminado correctamente, 0 si no se encontró.
+ */
 int deleteToken(hashTable tabla, char *lexema);
 
 /**
- * @brief Función que modifica el componente del token a modificar a la tabla hash
- * @param tabla: tabla de hash en la que se modificará el token
- * @param t: token que se modificará
- * !IMPORTANTE: Esta función solo se usará en caso de que se modifique el componente léxico de un token
-*/
+ * Modifica el componente léxico de un token existente en la tabla de hash.
+ * @param tabla Puntero a la tabla de hash.
+ * @param lexema Lexema del token a modificar.
+ * @param componente Nuevo componente léxico para el token.
+ * @return 1 si la modificación fue exitosa, 0 si no se encontró el token.
+ */
 int modifyToken(hashTable *tabla, char * lexema, int componente);
 
 #endif //TABLAHASH_H
