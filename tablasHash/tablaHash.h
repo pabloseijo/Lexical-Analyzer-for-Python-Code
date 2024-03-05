@@ -4,6 +4,7 @@
  * @date 21/02/2024
  * @brief Define una estructura y operaciones básicas para manejar una 
  * tabla de hash para tokens.
+ * 
  * La tabla utiliza encadenamiento para resolver colisiones y se 
  * redimensiona dinámicamente para mantener un factor de carga óptimo.
 */
@@ -28,6 +29,7 @@ typedef struct token {
 
 // Alias para mejorar la legibilidad del código al trabajar con la tabla de hash.
 typedef token **hashTable;
+
 /**
  * Inicializa la tabla de hash con un tamaño especificado.
  * Reserva memoria para la tabla y la inicializa a NULL.

@@ -1,9 +1,9 @@
 /**
+ * @file analizadorLexico.h
  * @author Pablo Seijo García
- * @date 21/02/2024
- * @brief Fichero que contiene las definiciones de las funciones del analizador léxico
-*/
-
+ * @date 30/02/2024
+ * @brief Definición de las funciones del sistema del analizador léxico
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +13,6 @@
 #include "../tablaSimbolos/tablaSimbolos.h"
 #include "../tablasHash/tablaHash.h"
 #include "../sistemaEntrada/sistemaEntrada.h"
-
-//----------------- Funciones públicas -----------------
 
 /**
  * @brief Función que devuelve el siguiente token (es decir el siguiente componente léxico)

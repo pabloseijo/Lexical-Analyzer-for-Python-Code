@@ -1,23 +1,14 @@
 /**
+ * @file tablaSimbolos.h
  * @author Pablo Seijo García
- * @date 01/03/2024
- * @brief Fichero que contiene las definiciones de las funciones de la tabla de símbolos
-*/
-
-/**
- * @note Decidi usar un nivel de abstracción mayor y separar la tabla de símbolos de la tabla Hash 
- * de tal manera que el usuario no tenga que preocuparse por la implementación de las funciones de 
- * la tabla hash ni del hash en sí. 
+ * @date 26/02/2024
+ * @brief Definicion de una tabla de simbolos para la abstraccion de la 
+ * tabla hash
  * 
- * @note En cualquier caso la tabla hash hace uso de punteros dobles (array de structuras) para la 
- * correcta implementación dinámica de esta, por lo que puede resultar complicado la compresión de 
- * la misma. Esto hace que la abstractización de la tabla de símbolos sea necesaria.
- * 
- * @note Para facilitar tambien la comprensión de la tabla de símbolos, se muestra en un comentario
- * la estructura que compone un token, que es cada uno de los elementos de la tabla Hash, y por tanto
- * de la tabla de símbolos. La compresión de esta estructura es clave para entender el funcionamiento
- * del programa.
-*/
+ * Mejora la abstraccion de la implementacion de la tabla hash, permitiendo
+ * al usuario trabajar con la tabla de simbolos sin tener que entender la 
+ * tabla hash
+ */
 
 #ifndef TABLASIMBOLOS_H
 #define TABLASIMBOLOS_H
@@ -32,16 +23,11 @@
 /**
  * La estructura token es la siguiente:
  * 
- * @brief Estructura del token que constituye el componente léxico
- * @param componente: codigo del componente lexico
- * @param lexema: cadena de caracteres que representa el lexema
- * @param next: puntero al siguiente token (Se usa para el encadenamiento en la tabla hash)
- * 
  * typedef struct token {
- *      int componente;
- *       char* lexema;
- *       struct token *next;
- *   } token;
+ *      int componente; // Código numérico del componente léxico.
+ *      char* lexema;  // Representación textual del token.
+ *      struct token *next; // Para la implementacion de las listas enlazadas
+ * } token;
 */
 
 //------------------------------- Funciones de Estructura ------------------------------

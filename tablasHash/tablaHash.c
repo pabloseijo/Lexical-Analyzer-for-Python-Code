@@ -158,7 +158,7 @@ int insertToken(hashTable *tabla, char *lexema, int componente){
 
     if (nuevoToken == NULL) return -1;
 
-    // Implementamos el encadenamiento en tablas hash (mas eficiente) debido a las restricciones //
+    // Implementamos el encadenamiento en tablas hash (mas eficiente) debido a las restricciones
     // del sistema
     nuevoToken->lexema = strdup(lexema); 
     nuevoToken->componente = componente; 
@@ -203,7 +203,6 @@ int searchTokenComponent(hashTable tabla, char *lexema) {
 
 // Elimina un token específico si se encuentra en la tabla.
 int deleteToken(hashTable tabla, char *lexema) {
-
 
     int index = hash(lexema);
 
@@ -252,15 +251,15 @@ int modifyToken(hashTable *tabla, char * lexema, int componente){
 unsigned int hash(char *string){
 
     unsigned int hash = 0; 
-    int charStorage = 0; 
+    int asciiEquivalent = 0; 
 
     //Los primos tienen una gran capacidad de dispersión
     const unsigned int prime = 31;
 
     // Utilizamos una operación XOR y una multiplicación por un número primo para mezclar los bits y mejorar la dispersión
     for(int i = 0; i < strlen(string); i++){
-        charStorage = string[i]; //ASCII del caracter
-        hash = (hash * prime) ^ charStorage;
+        asciiEquivalent = string[i]; //ASCII del caracter
+        hash = (hash * prime) ^ asciiEquivalent;
     }
 
     return hash % TABLE_SIZE;
