@@ -39,6 +39,7 @@ void automataString(char *siguienteChar);
 
 // Función que devuelve el siguiente token (es decir el siguiente componente léxico)
 int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
+
     if(ficheroEntrada == NULL){
         printf("Error: No se ha abierto el fichero de entrada\n");
         exit(EXIT_FAILURE);
@@ -56,6 +57,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
             while(siguienteChar != '\n'){
                 siguienteChar = siguienteCaracter(ficheroEntrada);
             }
+            moverInicioLexemaADelantero();
         }
         siguienteChar = siguienteCaracter(ficheroEntrada);
     }
@@ -68,7 +70,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
         automataID(&siguienteChar, tokenProcesado);
 
         // Al acabar el autómata deberemos devolver el último caracter leído, ya que no pertenece a la cadena alfanumérica
-        devolverCaracter(siguienteChar);
+        retrocederCaracter();
 
         tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
 
@@ -87,7 +89,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
         automataNums(&siguienteChar, tokenProcesado);
 
         // Al acabar el autómata deberemos devolver el último caracter leído, ya que no pertenece al número
-        devolverCaracter(siguienteChar);
+        retrocederCaracter();
 
         //TODO: meter sig en el token para buscarlo en la tabla de símbolos
     }
@@ -101,7 +103,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
         automataOp(&siguienteChar);
 
         // Al acabar el autómata deberemos devolver el último caracter leído, ya que no pertenece al operador
-        devolverCaracter(siguienteChar);
+        retrocederCaracter();
 
         //TODO: meter sig en el token para buscarlo en la tabla de símbolos
 
@@ -116,7 +118,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
         automataDel(&siguienteChar);
 
         // Al acabar el autómata deberemos devolver el último caracter leído, ya que no pertenece al delimitador
-        devolverCaracter(siguienteChar);
+        retrocederCaracter();
 
         //TODO: meter sig en el token para buscarlo en la tabla de símbolos
         
@@ -129,7 +131,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
         automataString(&siguienteChar);
 
         // Al acabar el autómata deberemos devolver el último caracter leído, ya que no pertenece al string
-        devolverCaracter(siguienteChar);
+        retrocederCaracter();
 
         //TODO: meter sig en el token para buscarlo en la tabla de símbolos
     }
@@ -142,11 +144,8 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
 void automataID(char *siguienteChar, token *tokenProcesado){
     
     int estado = 0; 
-
-    char cadenaCharLeidos[30];
     int index = 0; 
     
-
     char *lexema = NULL;
 
     /**
@@ -162,9 +161,6 @@ void automataID(char *siguienteChar, token *tokenProcesado){
 
                 if(isalpha(*siguienteChar) || *siguienteChar == '_'){
                     estado = 1; 
-                
-                    cadenaCharLeidos[index] = *siguienteChar; 
-                    index++;
 
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }    
@@ -180,9 +176,6 @@ void automataID(char *siguienteChar, token *tokenProcesado){
                 if(isalnum(*siguienteChar) || *siguienteChar == '_'){
                     estado = 1;
 
-                    cadenaCharLeidos[index] = *siguienteChar; 
-                    index++; 
-
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 } 
 
@@ -192,16 +185,8 @@ void automataID(char *siguienteChar, token *tokenProcesado){
 
             case 2:
     
-                lexema = (char*) malloc (sizeof(char) * (index + 1));
-
-                for(int i = 0 ; i < index; i++){
-                    lexema[i] = cadenaCharLeidos[i];
-                }
-
-                tokenProcesado->lexema = (char*) malloc (sizeof(char) * index);
-
-                strncpy(tokenProcesado->lexema, lexema, index);
-
+                tokenProcesado->lexema = devolverLexema();
+    
                 estado = -1;
 
                 break;
@@ -393,7 +378,9 @@ void automataString(char *siguienteChar){
 
 int main(){
     token t;
-    ficheroEntrada = fopen("wilcoxon.py", "r");
+    ficheroEntrada = fopen("archivo.txt", "r");
+
+    inicializarDobleCentinela(ficheroEntrada);
 
     hashTable tabla;
 
@@ -403,11 +390,6 @@ int main(){
     printf("%s %d\n", t.lexema, t.componente);
     seguinte_comp_lexico(&t, &tabla);
     printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-
-    imprimirTabla(tabla);
-
     seguinte_comp_lexico(&t, &tabla);
     printf("%s %d\n", t.lexema, t.componente);
     seguinte_comp_lexico(&t, &tabla);
@@ -426,6 +408,4 @@ int main(){
     printf("%s %d\n", t.lexema, t.componente);
 
     printf("\n");
-
-    imprimirTabla(tabla);
 }
