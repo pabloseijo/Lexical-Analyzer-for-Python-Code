@@ -488,7 +488,8 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
             //Incial
             case 0:
                 if(*siguienteChar == '(' || *siguienteChar == ')' || *siguienteChar == '{' || *siguienteChar == '}' || *siguienteChar == '[' 
-                    || *siguienteChar == ']' || *siguienteChar == ',' || *siguienteChar == ';' || *siguienteChar == '.'){ //TODO: funciona
+                    || *siguienteChar == ']' || *siguienteChar == ',' || *siguienteChar == ';' || *siguienteChar == '.'){ 
+                    //TODO: funciona
                     estado = 10;  
                 }
 

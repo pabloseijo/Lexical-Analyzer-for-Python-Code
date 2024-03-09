@@ -1,2 +1,33 @@
+# Carpeta de configuraciones de Visual Studio Code
 .vscode/
-ejecutable
+
+# Ejecutables y binarios
+# Reemplaza 'ejecutable' con el nombre específico de tu ejecutable si es conocido,
+# o usa un patrón para excluir todos los ejecutables típicos en tu entorno
+*.exe
+*.out
+*.bin
+*.dll
+*.so
+*.dylib
+# Si 'ejecutable' es el nombre de un directorio, deberías agregarlo así:
+#ejecutable/
+
+# Archivos del sistema MacOS
+.DS_Store
+# Otros archivos y carpetas del sistema MacOS que podrías querer excluir
+.AppleDouble
+.LSOverride
+Icon
+# Thumbnails
+._*
+
+# Archivos de dependencias
+# Por ejemplo, si usas Node.js, puedes querer excluir node_modules
+#node_modules/
+
+# Carpetas de compilación
+# Añade aquí carpetas como 'build', 'bin', etc., según tu entorno de desarrollo
+/build/
+/bin/
+/obj/
