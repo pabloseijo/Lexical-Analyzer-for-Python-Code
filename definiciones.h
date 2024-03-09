@@ -23,4 +23,9 @@
 
 // Definiciones para los operadores
 #define ID 309
+#define NUM 310
+#define STRING 311
+#define OP 312
+#define DEL 313
+
 

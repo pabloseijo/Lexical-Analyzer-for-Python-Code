@@ -45,10 +45,10 @@ void inicializarDobleCentinela (FILE *file){
 void retrocederCaracter() {
 
     if( (delanteroEnBufferA() && dobleCentinela.delantero > dobleCentinela.bufferA) || (delanteroEnBufferB() && dobleCentinela.delantero > dobleCentinela.bufferB) ){
-        dobleCentinela.delantero--;
+        dobleCentinela.delantero --;
 
     } else {
-
+        //TODO: el puntero del archivo esta delante, gestionar esto
         if (inicioEnBufferA()) {
             dobleCentinela.delantero = dobleCentinela.bufferA + BUFF_SIZE - 2;
 
@@ -65,8 +65,8 @@ char siguienteCaracter(FILE *file) {
     char charLeido;
 
     if(*dobleCentinela.delantero != EOF){
-        charLeido = *dobleCentinela.delantero;
         dobleCentinela.delantero++;
+        charLeido = *dobleCentinela.delantero;
 
         return charLeido;
 
@@ -94,7 +94,7 @@ char *devolverLexema(){
     char *lexemaDevuelto;
     int longitudLexema;
     
-    if ( (delanteroEnBufferA() && inicioEnBufferA()) && (delanteroEnBufferB() && inicioEnBufferB()) ) {
+    if ( (delanteroEnBufferA() && inicioEnBufferA()) || (delanteroEnBufferB() && inicioEnBufferB()) ) {
         longitudLexema = dobleCentinela.delantero - dobleCentinela.inicioLexema;
   
     } else {  // Los punteros están en diferentes buffers
@@ -115,7 +115,7 @@ char *devolverLexema(){
         lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
     }
 
-    dobleCentinela.inicioLexema = dobleCentinela.delantero;
+    moverInicioLexemaADelantero();
 
     return lexemaDevuelto;
 }
@@ -123,6 +123,11 @@ char *devolverLexema(){
 // Mueve el puntero inicioLexema al puntero delantero
 void moverInicioLexemaADelantero() {
     dobleCentinela.inicioLexema = dobleCentinela.delantero;
+}
+
+// Devuelve el caracter que está en el puntero delantero
+char devolverDelantero(){
+    return *dobleCentinela.delantero;
 }
 
 //------------------------------------------ FUNCIONES PRIVADAS --------------------------------------------------

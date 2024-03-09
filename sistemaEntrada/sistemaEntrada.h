@@ -41,3 +41,8 @@ char *devolverLexema();
  * Mueve el puntero delantero una posición hacia delante
 */
 void moverInicioLexemaADelantero();
+
+/**
+ * Devuelve el caracter que se encuentra en el puntero delantero
+*/
+char devolverDelantero();
