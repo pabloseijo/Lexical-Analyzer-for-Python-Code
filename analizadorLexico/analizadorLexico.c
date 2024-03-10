@@ -295,28 +295,26 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
      *  -> Estado 0: Inicial
      *  -> Estado 10: Aceptación
     */
-    while(estado != 2){
+    while(estado != -1){
         switch(estado){
 
             case 0:
 
-                if(*siguienteChar == '+' || *siguienteChar == '-' || *siguienteChar == '%' ||
-                    *siguienteChar == '&' || *siguienteChar == '|' || *siguienteChar == '@' || *siguienteChar == '^'){ //TODO: funciona
+                if(*siguienteChar == '+'|| *siguienteChar == '%' || *siguienteChar == '&' || *siguienteChar == '|' || *siguienteChar == '@' || *siguienteChar == '^'){ 
                     estado = 1;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '*'){
+                else if (*siguienteChar == '*'){ 
                     estado = 2;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '~'){
-                    estado = 12;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                else if (*siguienteChar == '~'){ 
+                    estado = 10;
                 }
 
-                else if (*siguienteChar == '/'){ //TODO: funciona
+                else if (*siguienteChar == '/'){ 
                     estado = 4;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
@@ -324,15 +322,20 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                 else if (*siguienteChar == ':' || *siguienteChar == '=' || *siguienteChar == '!'){
                     estado = 5;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
-                }
+                } 
 
-                else if (*siguienteChar == '>'){ //TODO: funciona
+                else if (*siguienteChar == '>'){
                     estado = 6; 
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '<'){ //TODO: funciona
+                else if (*siguienteChar == '<'){ 
                     estado = 7;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                else if(*siguienteChar == '-' ){
+                    estado = 9;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
                 
@@ -345,6 +348,7 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                 if(*siguienteChar != '='){
                     estado = 10;
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                 } else {
                     retrocederCaracter();
                     *siguienteChar = devolverDelantero();
@@ -364,7 +368,9 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                     estado = 10;
                     retrocederCaracter();
                     *siguienteChar = devolverDelantero();
-                } else { 
+                } 
+                
+                else { 
                     retrocederCaracter();
                     *siguienteChar = devolverDelantero();
                     return 0;
@@ -415,6 +421,7 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                     estado = 10;
                 } else {
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
 
@@ -425,7 +432,13 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                 if(*siguienteChar == '>'){
                     estado = 8;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
-                } else {
+                }
+                
+                else if(*siguienteChar == '='){
+                    estado = 10;
+                }
+                
+                else {
                     estado = 10;
                     retrocederCaracter();
                     *siguienteChar = devolverDelantero();
@@ -438,7 +451,13 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                 if(*siguienteChar == '<'){
                     estado = 8;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
-                } else {
+                } 
+                
+                else if(*siguienteChar == '='){
+                    estado = 10;
+                }
+
+                else {
                     estado = 10;
                     retrocederCaracter();
                     *siguienteChar = devolverDelantero();
@@ -451,12 +470,25 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                 if(*siguienteChar != '='){
                     estado = 10;
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                 } else { // Retrocedemos dos veces porque el automata leyo '<<' o '>>' o '//'
                     retrocederCaracter();
                     retrocederCaracter();
                     *siguienteChar = devolverDelantero();
                     return 0;
                 } 
+                break;
+
+            case 9:
+                    
+                if(*siguienteChar != '=' && *siguienteChar != '>'){
+                    estado = 10;
+                } else {
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+                    return 0;
+                } 
+
                 break;
 
             case 10:
@@ -489,38 +521,37 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
             case 0:
                 if(*siguienteChar == '(' || *siguienteChar == ')' || *siguienteChar == '{' || *siguienteChar == '}' || *siguienteChar == '[' 
                     || *siguienteChar == ']' || *siguienteChar == ',' || *siguienteChar == ';' || *siguienteChar == '.'){ 
-                    //TODO: funciona
                     estado = 10;  
                 }
 
-                else if( *siguienteChar == '^' || *siguienteChar == '&' || *siguienteChar == '|' || *siguienteChar == '=' 
+                else if( *siguienteChar == '^' || *siguienteChar == '&' || *siguienteChar == '|' 
                     || *siguienteChar == '@' || *siguienteChar == '%' || *siguienteChar == '+'){
-                    estado = 1;  //TODO: funciona
+                    estado = 1;  
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == ':'){
+                else if (*siguienteChar == ':' || *siguienteChar == '='){ 
                     estado = 2;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
                 else if (*siguienteChar == '-'){
-                    estado = 3;  //TODO: funciona
+                    estado = 3;  
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
                 else if (*siguienteChar == '/'){
-                    estado = 4;  //TODO: funciona //= pero no /=
+                    estado = 4;  
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
                 else if (*siguienteChar == '<'){
-                    estado = 5;  //TODO: funciona <<=
+                    estado = 5;  
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
                 else if (*siguienteChar == '>'){
-                    estado = 6;  
+                    estado = 6; 
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
@@ -539,6 +570,7 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
                 }  else {
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
 
@@ -549,44 +581,59 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
                 if(*siguienteChar != '='){
                     estado = 10;
                     retrocederCaracter();
-                    break;  
+                    *siguienteChar = devolverDelantero();
                 }  else {
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
+
+                break; 
             
             case 3:
 
                 if(*siguienteChar == '=' || *siguienteChar == '>'){
                     estado = 10;
-                    break;  
                 }  else {
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
+
+                break; 
 
             case 4:
 
                 if(*siguienteChar == '/'){
                     estado = 8;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
-                    break;  
-                }  else {
+                }  
+                
+                else if(*siguienteChar == '='){
+                    estado = 10;
+                } 
+                
+                else {
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
+
+                break; 
 
             case 5:
 
                 if(*siguienteChar == '<'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
-                    break;  
+                    *siguienteChar = siguienteCaracter(ficheroEntrada); 
                 }  else {
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
                 
+                break; 
+
             case 6:
 
                 if(*siguienteChar == '>'){
@@ -594,30 +641,43 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 } else {
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
+
+                break;
 
             case 7:
 
                 if(*siguienteChar == '*'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
-                    break;  
-                }  else { 
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);  
+                }  
+                
+                else if(*siguienteChar == '='){
+                    estado = 10;
+                }
+                
+                else { 
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
+
+                break;
 
             case 8:
 
                 if(*siguienteChar == '='){
-                    estado = 10;
-                    break;  
+                    estado = 10; 
                 }  else { // Retrocedemos dos veces porque el automata leyo '//' o '<<' o '>>' o '**'
                     retrocederCaracter();
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
                     return 0;
                 } 
+
+                break; 
 
             case 10:
 
@@ -679,6 +739,11 @@ int main(){
     printf("%s %d\n", t.lexema, t.componente);
     seguinte_comp_lexico(&t, &tabla);
     printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    
 
     printf("\n");
 }

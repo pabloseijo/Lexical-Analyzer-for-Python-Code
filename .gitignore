@@ -4,6 +4,7 @@
 # Ejecutables y binarios
 # Reemplaza 'ejecutable' con el nombre específico de tu ejecutable si es conocido,
 # o usa un patrón para excluir todos los ejecutables típicos en tu entorno
+ejecutable
 *.exe
 *.out
 *.bin
