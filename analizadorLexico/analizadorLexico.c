@@ -28,6 +28,12 @@ void automataID(char *siguienteChar, token *tokenProcesado);
 //Autómata para el componente léxico NÚMEROS
 void automataNums(char *siguienteChar, token *tokenProcesado);
 
+//Autómata para el componente léxico NÚMEROS ENTEROS
+int automataInts(char *siguienteChar, token *tokenProcesado);
+
+//Autómata para el componente léxico NÚMEROS FLOTANTES e IMAGINARIOS
+int automataFloats(char *siguienteChar, token *tokenProcesado);
+
 //Autómata para el componente léxico OPERADORES
 int automataOp(char *siguienteChar, token *tokenProcesado);
 
@@ -92,13 +98,27 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
     //-------------------- 2: NÚMEROS --------------------
 
     // Si el caracter es un número, podria ser el inicio de un número
-    if(isdigit(siguienteChar)){
-        automataNums(&siguienteChar, tokenProcesado);
+    if(isdigit(siguienteChar) || siguienteChar == '.'){
 
-        // Al acabar el autómata deberemos devolver el último caracter leído, ya que no pertenece al número
-        retrocederCaracter();
+        if (siguienteChar != '.'){
+            if(automataInts(&siguienteChar, tokenProcesado)){
 
-        //TODO: meter sig en el token para buscarlo en la tabla de símbolos
+                tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
+
+                siguienteChar = siguienteCaracter(ficheroEntrada);
+
+                return 1;
+            }
+        }
+
+        if(automataFloats(&siguienteChar, tokenProcesado)){
+
+            tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
+
+            siguienteChar = siguienteCaracter(ficheroEntrada);
+
+            return 1;
+        }
     }
 
     //-------------------- 3: OPERADORES --------------------
@@ -281,6 +301,369 @@ void automataNums(char *siguienteChar, token *tokenProcesado){
 
             default:
                 return;
+                break;
+        }
+    }
+}
+
+int automataInts(char *siguienteChar, token *tokenProcesado){
+
+    int estado = 0;
+
+    int contadorParaRetroceder = 1;
+
+     /**
+     * Ver el autómata en la carpeta automatasPNG
+     *  -> Estado 0: Inicial
+     *  -> Estado 1, 2, 6, 7, 8  : Aceptación
+    */ 
+    while (estado != -1){
+        switch(estado){
+
+            case 0:
+                //ASCII del 1..9 
+                if(*siguienteChar >= 49 && *siguienteChar <= 57){
+                    estado = 1;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+                
+                else if(*siguienteChar == '0'){
+                    estado = 2;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+                
+                else {
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                    }
+
+                    return 0;
+                }
+
+                break;
+
+            case 1:
+
+                //ASCII del 0..9
+                while(*siguienteChar >= 48 && *siguienteChar <= 57 || *siguienteChar == '_'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                }
+
+               if(!isdigit(*siguienteChar) && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    tokenProcesado->lexema = devolverLexema();
+                    estado = -1;
+                    return 1;
+                } else {
+
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                        *siguienteChar = devolverDelantero();
+                    }
+                    
+                    return 0;
+                }
+
+                break;
+
+            
+            case 2:
+        
+                if(*siguienteChar == 'b' || *siguienteChar == 'B'){
+                    estado = 3;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                }
+
+                else if (*siguienteChar == 'o' || *siguienteChar == 'O'){
+                    estado = 4;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                }
+
+                else if (*siguienteChar == 'x' || *siguienteChar == 'X'){
+                    estado = 5;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                }
+
+                else{
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    tokenProcesado->lexema = devolverLexema();
+                    estado = -1;
+                    return 1;
+                }
+
+                break;
+
+            case 3:
+
+                if(*siguienteChar == '0' || *siguienteChar == '1'){
+                    estado = 6;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                } 
+
+                else if(*siguienteChar == '_'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                    if(*siguienteChar == '0' || *siguienteChar == '1'){
+                        estado = 6;
+                    }
+                }
+
+                else {
+
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                        *siguienteChar = devolverDelantero();
+                    }
+                    return 0;
+                }
+
+                break;
+
+            case 4:
+                //ASCII del 0..8
+                if(*siguienteChar >= 48 && *siguienteChar <= 56 ){
+                    estado = 7;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                } 
+
+                else if(*siguienteChar == '_'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                    if(*siguienteChar >= 48 && *siguienteChar <= 56){
+                        estado = 7;
+                    }
+                }
+
+                else {
+
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                        *siguienteChar = devolverDelantero();
+                    }
+                    return 0;
+                }
+
+                break;
+
+            case 5:
+                //ASCII del 0..9, a..f y A..F
+                if(*siguienteChar >= 48 && *siguienteChar <= 57 ||          
+                    *siguienteChar >= 97 && *siguienteChar <= 102 || 
+                    *siguienteChar >= 65 && *siguienteChar <= 70){
+                    estado = 8;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                } 
+
+                else if(*siguienteChar == '_'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                    if(*siguienteChar >= 48 && *siguienteChar <= 57 || 
+                        *siguienteChar >= 97 && *siguienteChar <= 102 || 
+                        *siguienteChar >= 65 && *siguienteChar <= 70){
+                        estado = 8;
+                    } else return 0;
+                }
+
+                else {
+
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                        *siguienteChar = devolverDelantero();
+                    }
+                    return 0;
+                }
+
+                break;
+
+            case 6:
+
+                while(*siguienteChar == '0' || *siguienteChar == '1' || *siguienteChar == '_'){
+                        *siguienteChar = siguienteCaracter(ficheroEntrada);
+                        contadorParaRetroceder++;
+                }
+
+                if(*siguienteChar != '1' && *siguienteChar != 0 && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+                    retrocederCaracter();
+
+                    tokenProcesado->lexema = devolverLexema();
+                    estado = -1;
+                    return 1;
+                } 
+                
+                else {
+
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                        *siguienteChar = devolverDelantero();
+                    }
+
+                    return 0;
+                }
+
+                break;
+
+            case 7:
+                //ASCII del 0..8
+                while(*siguienteChar >= 48 && *siguienteChar <= 56 || *siguienteChar == '_'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                }
+
+                if(!(*siguienteChar >= 48 && *siguienteChar <= 56) && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    tokenProcesado->lexema = devolverLexema();
+                    estado = -1;
+                    return 1;
+                } 
+                
+                else {
+
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                        *siguienteChar = devolverDelantero();
+                    }
+                    return 0;
+                }
+
+                break;
+
+            case 8:
+                while(*siguienteChar >= 48 && *siguienteChar <= 57 ||          
+                    *siguienteChar >= 97 && *siguienteChar <= 102 || 
+                    *siguienteChar >= 65 && *siguienteChar <= 70 || *siguienteChar == '_'){
+
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    contadorParaRetroceder++;
+                
+                }
+
+                if(!(*siguienteChar >= 48 && *siguienteChar <= 57 || 
+                    *siguienteChar >= 97 && *siguienteChar <= 102 || 
+                    *siguienteChar >= 65 && *siguienteChar <= 70) && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    tokenProcesado->lexema = devolverLexema();
+                    estado = -1;
+                    return 1;
+                } 
+                
+                else {
+                    for(int i = 0; i < contadorParaRetroceder; i++){
+                        retrocederCaracter();
+                        *siguienteChar = devolverDelantero();
+                    }
+                    return 0;
+                }
+
+                break;
+
+            default:
+                return 0;
+                break;
+        }
+    }
+}
+
+int automataFloats(char *siguienteChar, token *tokenProcesado){
+
+    int estado = 0;
+    
+
+     /**
+     * Ver el autómata en la carpeta automatasPNG (Los estados 2 y 3 se colapsan en uno)
+     *  -> Estado 0: Inicial
+     *  -> Estado 1, 2, 3  : Aceptación
+    */ 
+    while (estado != -1){
+        switch(estado){
+
+            case 0:
+                //ASCII del 1..9 
+                if(*siguienteChar >= 48 && *siguienteChar <= 57){
+                    estado = 0;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+                
+                else if(*siguienteChar == '.'){
+                    estado = 1;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+
+                else if(*siguienteChar == 'e' || *siguienteChar == 'E'){
+                    estado = 1;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+                
+                else return 0;
+
+                break;
+
+            case 1:
+                //ASCII del 0..9
+                while(*siguienteChar >= 48 && *siguienteChar <= 57 || *siguienteChar == '_'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                if(*siguienteChar == 'j'){
+                    estado = 4;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                else{
+                    retrocederCaracter();
+
+                    tokenProcesado->lexema = devolverLexema();
+                    estado = -1;
+
+                    return 1;
+                }
+
+                break;
+
+            case 2:
+                //ASCII del 0..9
+                while(*siguienteChar >= 48 && *siguienteChar <= 57 || *siguienteChar == '+' || *siguienteChar == '-' || *siguienteChar == '_'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                if(*siguienteChar == 'j'){
+                    estado = 4;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                else{
+                    retrocederCaracter();
+
+                    tokenProcesado->lexema = devolverLexema();
+                    estado = -1;
+                    return 1;
+                }
+
+                break;
+
+            case 3:
+                //ASCII del 0..9
+                
+                tokenProcesado->lexema = devolverLexema();
+                estado = -1;
+                return 1;
+                
                 break;
         }
     }
@@ -743,7 +1126,16 @@ int main(){
     printf("%s %d\n", t.lexema, t.componente);
     seguinte_comp_lexico(&t, &tabla);
     printf("%s %d\n", t.lexema, t.componente);
-    
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
 
     printf("\n");
 }
