@@ -25,9 +25,6 @@ FILE* ficheroEntrada;
 //Autómata para el componente léxico ID
 void automataID(char *siguienteChar, token *tokenProcesado);
 
-//Autómata para el componente léxico NÚMEROS
-void automataNums(char *siguienteChar, token *tokenProcesado);
-
 //Autómata para el componente léxico NÚMEROS ENTEROS
 int automataInts(char *siguienteChar, token *tokenProcesado);
 
@@ -41,7 +38,7 @@ int automataOp(char *siguienteChar, token *tokenProcesado);
 int automataDel(char *siguienteChar, token *tokenProcesado);
 
 //Autómata para el componente léxico STRING
-void automataString(char *siguienteChar);
+int automataString(char *siguienteChar, token *tokenProcesado);
 
 // Función que devuelve el siguiente token (es decir el siguiente componente léxico)
 int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
@@ -173,13 +170,16 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
     //-------------------- 5: STRINGS -------------------- 
 
     // Si el caracter es una comilla doble, podria ser el inicio de un string   
-    if(siguienteChar == '\"'){
-        automataString(&siguienteChar);
+    if(siguienteChar == '\"' || siguienteChar == '\''){
+        if(automataString(&siguienteChar, tokenProcesado)){
 
-        // Al acabar el autómata deberemos devolver el último caracter leído, ya que no pertenece al string
-        retrocederCaracter();
+            tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
 
-        //TODO: meter sig en el token para buscarlo en la tabla de símbolos
+
+            siguienteChar = siguienteCaracter(ficheroEntrada);
+
+            return 1;
+        }
     }
 
     
@@ -235,67 +235,6 @@ void automataID(char *siguienteChar, token *tokenProcesado){
     
                 tokenProcesado->lexema = devolverLexema();
                 estado = -1;
-
-                break;
-
-            default:
-                return;
-                break;
-        }
-    }
-}
-
-void automataNums(char *siguienteChar, token *tokenProcesado){
-
-    int estado = 0; 
-
-    char cadenaCharLeidos[30];
-    int index = 0; 
-
-    char *lexema = NULL;
-
-    /**
-     * AUTÓMATA PARA EL COMPONENTE LÉXICO NÚMEROS
-     *  -> Estado 0: Inicial
-     *  -> Estado 1: Lectura de dígitos
-     *  -> Estado 2: Aceptación
-    */
-    while (estado != 2){
-        switch(estado){
-
-            case 0:
-                if(isdigit(*siguienteChar)){
-                    estado = 1; 
-                    cadenaCharLeidos[index] = *siguienteChar; 
-                    index++;
-                } 
-                
-                else return; 
-
-                break;
-
-            case 1:
-
-                if(isdigit(*siguienteChar)){
-                    estado = 1; 
-                    cadenaCharLeidos[index] = *siguienteChar;
-                    index++;
-                }
-
-                else estado = 2;
-
-                break;
-
-            
-            case 2:
-        
-                lexema = (char*) malloc (sizeof(char) * index);
-
-                for(int i = 0 ; i < index; i++){
-                    lexema[i] = cadenaCharLeidos[i];
-                }
-
-                strncpy(tokenProcesado->lexema, lexema, index);
 
                 break;
 
@@ -606,7 +545,7 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
                 } 
 
                 else if(*siguienteChar == 'e' || *siguienteChar == 'E'){
-                    estado = 1;
+                    estado = 2;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 } 
                 
@@ -626,7 +565,14 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
                 }
 
                 else{
+
                     retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    if(*siguienteChar == '.'){
+                        estado = -1;
+                        return 0;
+                    }
 
                     tokenProcesado->lexema = devolverLexema();
                     estado = -1;
@@ -1073,34 +1019,206 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
     }
 }
 
-void automataString(char *siguienteChar){
+int automataString(char *siguienteChar, token *tokenProcesado){
 
     int estado = 0; 
+    int contadorComillas = 0;
 
-    while(estado != 2){
+
+    /**
+     * Ver automata en automatasPNG
+     * Estado 0: Inicial
+     * Estados 3,4,7,9: Finales
+    */
+    while(estado != -1){
+
         switch (estado){
             
             case 0:
                 
                 if(*siguienteChar == '\"'){
+    
                     estado = 1;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
-                else return;
+                else if(*siguienteChar == '\''){
+                    estado = 2;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                else{
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    return 0;
+                }
+
+                break;
 
             case 1:
 
-                if(*siguienteChar != '\"'){
-                    estado = 1;
+                if(*siguienteChar == '\"'){
+                    estado = 3;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
-                else estado = 2;
+                else{
+                    estado = 6;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+
+                break;
 
             case 2:
 
+                if(*siguienteChar == '\''){
+                    estado = 4;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                else{
+                    estado = 8;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+
                 break;
+
+            
+            case 3:
+
+                if(*siguienteChar == '\"'){
+                    estado = 5;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                else{
+
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    tokenProcesado->lexema = devolverLexema();
+
+                    estado = -1;
+                    return 1;
+                } 
+
+                break;
+
+            case 4: 
+
+                if(*siguienteChar == '\''){
+                    estado = 8;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                else{
+
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    tokenProcesado->lexema = devolverLexema();
+
+                    estado = -1;
+                    return 1;
+                } 
+
+                break;
+
+            case 5: 
+
+                while(contadorComillas != 3){
+                   
+
+                    if(*siguienteChar == '\"'){
+                        contadorComillas++;
+                    } else {
+                        contadorComillas = 0;
+                    }
+
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+
+                }
+
+                estado = -1;
+
+                return 0;
+
+                break;
+
+            case 6:
+
+                while(*siguienteChar != '\"'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                if(*siguienteChar == '\"'){
+                    estado = 7;
+                }
+
+                else{
+                    return 0;
+                }
+
+                break;
+
+            case 7:
+            
+                tokenProcesado->lexema = devolverLexema();
+
+                estado = -1;
+                return 1;
+
+                break;
+
+            case 8: 
+
+                while(contadorComillas != 3){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+
+                    if(*siguienteChar == '\''){
+                        contadorComillas++;
+                    } else {
+                        contadorComillas = 0;
+                    }
+                }
+
+                estado = -1;
+
+                return 0;
+
+                break;
+
+            case 9:
+
+                while(*siguienteChar != '\"'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                if(*siguienteChar == '\"'){
+                    estado = 10;
+                }
+
+                else{
+                    return 0;
+                }
+
+                break;
+
+            case 10:
+            
+                tokenProcesado->lexema = devolverLexema();
+
+                estado = -1;
+                return 1;
+
+                break;
+
+
         }
     }
+
+    return 0;
 }
 
 
@@ -1114,6 +1232,18 @@ int main(){
 
     inicializarTabla(&tabla);
 
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla);
+    printf("%s %d\n", t.lexema, t.componente);
     seguinte_comp_lexico(&t, &tabla);
     printf("%s %d\n", t.lexema, t.componente);
     seguinte_comp_lexico(&t, &tabla);
