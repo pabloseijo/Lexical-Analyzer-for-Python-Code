@@ -19,4 +19,4 @@
  * @param t: puntero a una estructura token
  * @param tabla: tabla de símbolos en la que se buscará el siguiente componente léxico
 */
-int seguinte_comp_lexico(token *t, hashTable *tabla);
+int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero);

@@ -15,7 +15,6 @@
 #include <ctype.h>
 #include "analizadorLexico.h"
 #include "../definiciones.h"
-#include "../tablaSimbolos/tablaSimbolos.h"
 #include "../sistemaEntrada/sistemaEntrada.h"
 
 FILE* ficheroEntrada; 
@@ -39,14 +38,18 @@ int automataDel(char *siguienteChar, token *tokenProcesado);
 
 //Autómata para el componente léxico STRING
 int automataString(char *siguienteChar, token *tokenProcesado);
+//Salta los comentarios del tipo """ o '''
+int automataComentariosComillas(char *siguienteChar);
 
 // Función que devuelve el siguiente token (es decir el siguiente componente léxico)
-int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
+int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero){
 
-    if(ficheroEntrada == NULL){
+    if(fichero == NULL){
         printf("Error: No se ha abierto el fichero de entrada\n");
         exit(EXIT_FAILURE);
     }
+
+    ficheroEntrada = fichero;
 
     //-------------------- COMENTARIOS Y ESPACIOS --------------------
 
@@ -58,26 +61,37 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
 
     int contadorCharSaltados = 0;
 
-    while(siguienteChar == ' ' || siguienteChar == '\n' || siguienteChar == '\t' || siguienteChar == '#'){
+    while(siguienteChar == ' ' || siguienteChar == '\n' || siguienteChar == '\t' || siguienteChar == '#'
+        || siguienteChar == '\"' || siguienteChar == '\'' || siguienteChar == '\0'){
+
         if(siguienteChar == '#'){
             while(siguienteChar != '\n'){
                 siguienteChar = siguienteCaracter(ficheroEntrada);
             }
             
         }
+        //Saltamos los comentarios del tipo """ o '''
+        else if(siguienteChar == '\"' || siguienteChar == '\''){
+            if(automataComentariosComillas(&siguienteChar)){
+                moverInicioLexemaADelantero();
+                continue;
+            }
+            else break;
+        }
         siguienteChar = siguienteCaracter(ficheroEntrada);
         contadorCharSaltados++;
     }
 
+    //Avanzamos el inicio hasta acabar el comentario
     if(contadorCharSaltados>0){
         moverInicioLexemaADelantero();
-    }
+    } 
 
     //-------------------- 1: CADENAS ALFANUMÉRICAS --------------------
 
     // Si el caracter es una letra, podria ser el inicio de una cadema alfanumérica
 
-    if(isalpha(siguienteChar)){
+    if(isalpha(siguienteChar) || siguienteChar == '_'){
         automataID(&siguienteChar, tokenProcesado);
 
         tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
@@ -182,17 +196,16 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla){
         }
     }
 
-    
+    tokenProcesado->lexema = NULL;
+
+    return 0;
 }
 
 //--------------------------- AUTÓMATAS ------------------------------
 
 void automataID(char *siguienteChar, token *tokenProcesado){
     
-    int estado = 0; 
-    int index = 0; 
-    
-    char *lexema = NULL;
+    int estado = 0;
 
     /**
      * AUTÓMATA PARA EL COMPONENTE LÉXICO ID
@@ -237,10 +250,6 @@ void automataID(char *siguienteChar, token *tokenProcesado){
                 estado = -1;
 
                 break;
-
-            default:
-                return;
-                break;
         }
     }
 }
@@ -256,7 +265,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
      *  -> Estado 0: Inicial
      *  -> Estado 1, 2, 6, 7, 8  : Aceptación
     */ 
-    while (estado != -1){
+    while (1){
         switch(estado){
 
             case 0:
@@ -272,7 +281,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                 } 
                 
                 else {
-                    for(int i = 0; i < contadorParaRetroceder; i++){
+                    for(int i = 0; i < contadorParaRetroceder; i++) {
                         retrocederCaracter();
                     }
 
@@ -295,7 +304,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     *siguienteChar = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
-                    estado = -1;
+
                     return 1;
                 } else {
 
@@ -307,7 +316,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     return 0;
                 }
 
-                break;
+
 
             
             case 2:
@@ -335,7 +344,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     *siguienteChar = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
-                    estado = -1;
+
                     return 1;
                 }
 
@@ -437,7 +446,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     retrocederCaracter();
 
                     tokenProcesado->lexema = devolverLexema();
-                    estado = -1;
+
                     return 1;
                 } 
                 
@@ -451,7 +460,6 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     return 0;
                 }
 
-                break;
 
             case 7:
                 //ASCII del 0..8
@@ -465,7 +473,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     *siguienteChar = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
-                    estado = -1;
+
                     return 1;
                 } 
                 
@@ -477,8 +485,6 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     }
                     return 0;
                 }
-
-                break;
 
             case 8:
                 while(*siguienteChar >= 48 && *siguienteChar <= 57 ||          
@@ -498,7 +504,6 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     *siguienteChar = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
-                    estado = -1;
                     return 1;
                 } 
                 
@@ -510,11 +515,6 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                     return 0;
                 }
 
-                break;
-
-            default:
-                return 0;
-                break;
         }
     }
 }
@@ -529,7 +529,7 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
      *  -> Estado 0: Inicial
      *  -> Estado 1, 2, 3  : Aceptación
     */ 
-    while (estado != -1){
+    while (1){
         switch(estado){
 
             case 0:
@@ -570,13 +570,10 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
                     *siguienteChar = devolverDelantero();
 
                     if(*siguienteChar == '.'){
-                        estado = -1;
                         return 0;
                     }
 
                     tokenProcesado->lexema = devolverLexema();
-                    estado = -1;
-
                     return 1;
                 }
 
@@ -597,20 +594,11 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
                     retrocederCaracter();
 
                     tokenProcesado->lexema = devolverLexema();
-                    estado = -1;
                     return 1;
                 }
 
                 break;
 
-            case 3:
-                //ASCII del 0..9
-                
-                tokenProcesado->lexema = devolverLexema();
-                estado = -1;
-                return 1;
-                
-                break;
         }
     }
 }
@@ -624,7 +612,7 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
      *  -> Estado 0: Inicial
      *  -> Estado 10: Aceptación
     */
-    while(estado != -1){
+    while(1){
         switch(estado){
 
             case 0:
@@ -822,14 +810,8 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
 
             case 10:
                 tokenProcesado->lexema = devolverLexema();
-                estado = -1;
                 return 1;
-                break;
 
-            default:
-                // Estado de error
-                return 0;
-                break;
         }
     }
 }
@@ -843,7 +825,7 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
      * estado 0: Inicial
      * estado 10: Aceptación
     */
-    while(estado != -1){
+    while(1){
         switch(estado){
             
             //Incial
@@ -1012,32 +994,27 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
                 tokenProcesado->lexema = devolverLexema();
 
-                estado = -1;
                 return 1;
-                break;  
         }
     }
 }
 
 int automataString(char *siguienteChar, token *tokenProcesado){
 
-    int estado = 0; 
-    int contadorComillas = 0;
-
+    int estado = 0;
 
     /**
      * Ver automata en automatasPNG
      * Estado 0: Inicial
-     * Estados 3,4,7,9: Finales
+     * Estados 4,6: Finales
     */
-    while(estado != -1){
+    while(1){
 
         switch (estado){
             
             case 0:
                 
                 if(*siguienteChar == '\"'){
-    
                     estado = 1;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
@@ -1058,13 +1035,13 @@ int automataString(char *siguienteChar, token *tokenProcesado){
 
             case 1:
 
-                if(*siguienteChar == '\"'){
+                if(*siguienteChar != '\"'){
                     estado = 3;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
                 else{
-                    estado = 6;
+                    estado = 4;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 } 
 
@@ -1072,13 +1049,11 @@ int automataString(char *siguienteChar, token *tokenProcesado){
 
             case 2:
 
-                if(*siguienteChar == '\''){
+                if(*siguienteChar != '\''){
                     estado = 4;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
-                }
-
-                else{
-                    estado = 8;
+                } else{
+                    estado = 5;
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 } 
 
@@ -1087,185 +1062,143 @@ int automataString(char *siguienteChar, token *tokenProcesado){
             
             case 3:
 
+                while(*siguienteChar != '\"'){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
                 if(*siguienteChar == '\"'){
                     estado = 5;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
-                else{
-
-                    retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
-
-                    tokenProcesado->lexema = devolverLexema();
-
-                    estado = -1;
-                    return 1;
-                } 
-
+                else return 0;
+                
                 break;
 
-            case 4: 
+            case 4:
 
-                if(*siguienteChar == '\''){
-                    estado = 8;
+                while(*siguienteChar != '\''){
                     *siguienteChar = siguienteCaracter(ficheroEntrada);
                 }
 
+                if(*siguienteChar == '\''){
+                    estado = 5;
+                }
+
                 else{
-
-                    retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
-
-                    tokenProcesado->lexema = devolverLexema();
-
-                    estado = -1;
-                    return 1;
-                } 
+                    return 0;
+                }
 
                 break;
 
             case 5: 
 
-                while(contadorComillas != 3){
-                   
-
-                    if(*siguienteChar == '\"'){
-                        contadorComillas++;
-                    } else {
-                        contadorComillas = 0;
-                    }
-
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
-
-                }
-
-                estado = -1;
-
-                return 0;
-
-                break;
-
-            case 6:
-
-                while(*siguienteChar != '\"'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
-                }
-
-                if(*siguienteChar == '\"'){
-                    estado = 7;
-                }
-
-                else{
-                    return 0;
-                }
-
-                break;
-
-            case 7:
-            
                 tokenProcesado->lexema = devolverLexema();
-
-                estado = -1;
                 return 1;
-
-                break;
-
-            case 8: 
-
-                while(contadorComillas != 3){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
-
-                    if(*siguienteChar == '\''){
-                        contadorComillas++;
-                    } else {
-                        contadorComillas = 0;
-                    }
-                }
-
-                estado = -1;
-
-                return 0;
-
-                break;
-
-            case 9:
-
-                while(*siguienteChar != '\"'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
-                }
-
-                if(*siguienteChar == '\"'){
-                    estado = 10;
-                }
-
-                else{
-                    return 0;
-                }
-
-                break;
-
-            case 10:
-            
-                tokenProcesado->lexema = devolverLexema();
-
-                estado = -1;
-                return 1;
-
-                break;
 
 
         }
     }
-
-    return 0;
 }
 
+int automataComentariosComillas(char *siguienteChar){
 
-int main(){
-    token t;
-    ficheroEntrada = fopen("archivo.txt", "r");
+    int estado = 0;
+    char tipoComillas = ' ';
 
-    inicializarDobleCentinela(ficheroEntrada);
+    /**
+     * Ver automata en automatasPNG (ambos caminos del automata fueron colapsados en uno solo
+     * para simplificar el código, ya que ambos caminos son iguales)
+     * 
+     * Estado 0: Inicial
+     * Estados 6: Finales
+    */
+    while(1){
 
-    hashTable tabla;
+        switch (estado){
 
-    inicializarTabla(&tabla);
+            case 0: 
 
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
+                if(*siguienteChar == '\"'){
+                    tipoComillas = '\"';
+                    estado = 1;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
 
-    printf("\n");
+                } else if(*siguienteChar == '\''){
+                    tipoComillas = '\'';
+                    estado = 1;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    
+                } else return 0;
+
+                break;
+
+            case 1:
+                if(*siguienteChar == tipoComillas){
+                    estado = 2;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } else {
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    return 0;
+                }
+
+                break;
+
+            case 2: 
+                if(*siguienteChar == tipoComillas){
+                    estado = 3;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } else {
+                    retrocederCaracter();
+                    *siguienteChar = devolverDelantero();
+
+                    return 0;
+                }
+
+                break;
+
+            case 3:
+
+                while(*siguienteChar != tipoComillas){
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } 
+
+                if(*siguienteChar == tipoComillas){
+                    estado = 4;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } else {
+                    return 0;
+                }
+
+                break;
+
+            case 4:
+
+                if(*siguienteChar == tipoComillas){
+                    estado = 5;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } else {
+                    estado = 3;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                break;
+
+            case 5:
+
+                if(*siguienteChar == tipoComillas){
+                    estado = 6;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                } else {
+                    estado = 3;
+                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                }
+
+                break;
+
+            case 6:
+                return 1;
+        }
+    }
 }

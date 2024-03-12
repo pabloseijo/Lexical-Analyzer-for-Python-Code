@@ -7,12 +7,8 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "../definiciones.h"
 #include "tablaSimbolos.h"
-#include "../tablasHash/tablaHash.h"
 
 // Inicializacion de la tabla de símbolos con las palabras reservadas del lenguaje
 int inicializarTabla(hashTable *tabla){

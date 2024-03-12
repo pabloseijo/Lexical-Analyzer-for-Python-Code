@@ -1,8 +1,1 @@
-import.scipy #amvoiamdv
-"""
-Created on Tue Sep 15 12:16:21 2015
-"""
-x[i]<<=3.14;
-y==23
-
-r="hola"iuasdhi
+print 'Result differences are "statistically significant"'

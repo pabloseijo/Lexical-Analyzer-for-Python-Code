@@ -13,7 +13,9 @@
 int main(){
     token t;
 
-    FILE *ficheroEntrada = fopen("entrada.txt", "r");
+    FILE *ficheroEntrada = fopen("wilcoxon.py", "r");
+
+
 
     inicializarDobleCentinela(ficheroEntrada);
 
@@ -21,10 +23,12 @@ int main(){
 
     inicializarTabla(&tabla);
 
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
-    seguinte_comp_lexico(&t, &tabla);
-    printf("%s %d\n", t.lexema, t.componente);
+    seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
+
+    while (t.lexema != NULL){
+        printf("Lexema: %s\n", t.lexema);
+        seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
+    }
 
 
     printf("\n");

@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include "tablaHash.h"
 
 // Tamaño inicial de la tabla de hash y número de elementos almacenados.
@@ -49,7 +48,10 @@ int initHashTable(hashTable *tabla, int size){
 // Libera los recursos asociados con la tabla de hash.
 int deleteHashTable(hashTable *tabla){
 
-    if(tabla == NULL)
+    if(tabla == NULL){
+        printf("ERROR: La tabla no existe\n");
+        return 0;
+    }
 
     for (int i = 0; i < TABLE_SIZE; i++) {
         if (tabla[i] != NULL) {
@@ -251,7 +253,7 @@ int modifyToken(hashTable *tabla, char * lexema, int componente){
 unsigned int hash(char *string){
 
     unsigned int hash = 0; 
-    int asciiEquivalent = 0; 
+    int asciiEquivalent;
 
     //Los primos tienen una gran capacidad de dispersión
     const unsigned int prime = 31;

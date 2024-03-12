@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFF_SIZE 120
+#define BUFF_SIZE 12000
 
 /**
  * Mueve el puntero delantero una posición hacia atrás
