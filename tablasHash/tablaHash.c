@@ -1,6 +1,5 @@
 /**
  * @file tablaHash.c
- * @author Pablo Seijo García
  * @date 21/02/2024
  * @brief Implementación de una tabla de hash para manejar tokens en un 
  * compilador.

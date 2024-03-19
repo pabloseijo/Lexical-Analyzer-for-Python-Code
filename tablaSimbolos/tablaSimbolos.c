@@ -1,6 +1,5 @@
 /**
  * @file tablaSimbolos.c
- * @author Pablo Seijo García
  * @date 26/02/2024
  * @brief Implementación de una tabla de simbolos para la abstraccion de la 
  * tabla hash

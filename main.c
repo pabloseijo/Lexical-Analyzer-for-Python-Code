@@ -26,7 +26,7 @@ int main(){
     seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
 
     while (t.lexema != NULL){
-        printf("Lexema: %s\n", t.lexema);
+        printf("Lexema: %s \tID: %d\n", t.lexema, t.componente);
         seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
     }
 

@@ -1,6 +1,5 @@
 /**
  * @file tablaSimbolos.h
- * @author Pablo Seijo García
  * @date 26/02/2024
  * @brief Definicion de una tabla de simbolos para la abstraccion de la 
  * tabla hash

@@ -1,6 +1,5 @@
 /**
  * @file analizadorLexico.c
- * @author Pablo Seijo García
  * @date 30/02/2024
  * @brief Implementacion de las funciones del sistema del analizador léxico
  * 
@@ -22,24 +21,25 @@ FILE* ficheroEntrada;
 
 
 //Autómata para el componente léxico ID
-void automataID(char *siguienteChar, token *tokenProcesado);
+void automataID(char *charActual, token *tokenProcesado);
 
 //Autómata para el componente léxico NÚMEROS ENTEROS
-int automataInts(char *siguienteChar, token *tokenProcesado);
+int automataInts(char *charActual, token *tokenProcesado);
 
 //Autómata para el componente léxico NÚMEROS FLOTANTES e IMAGINARIOS
-int automataFloats(char *siguienteChar, token *tokenProcesado);
+int automataFloats(char *charActual, token *tokenProcesado);
 
 //Autómata para el componente léxico OPERADORES
-int automataOp(char *siguienteChar, token *tokenProcesado);
+int automataOp(char *charActual, token *tokenProcesado);
 
 //Autómata para el componente léxico DELIMITADORES
-int automataDel(char *siguienteChar, token *tokenProcesado);
+int automataDel(char *charActual, token *tokenProcesado);
 
 //Autómata para el componente léxico STRING
-int automataString(char *siguienteChar, token *tokenProcesado);
+int automataString(char *charActual, token *tokenProcesado);
+
 //Salta los comentarios del tipo """ o '''
-int automataComentariosComillas(char *siguienteChar);
+int automataComentariosComillas(char *charActual);
 
 // Función que devuelve el siguiente token (es decir el siguiente componente léxico)
 int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero){
@@ -56,29 +56,30 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
     // Para este analizador léxico, saltamos los comentarios y los espacio en blanco
     // que en python los comentarios empiezan con #
 
-    char siguienteChar = devolverDelantero();
+    char charActual = devolverDelantero();
     moverInicioLexemaADelantero();
 
     int contadorCharSaltados = 0;
 
-    while(siguienteChar == ' ' || siguienteChar == '\n' || siguienteChar == '\t' || siguienteChar == '#'
-          || siguienteChar == '\"' || siguienteChar == '\'' || siguienteChar == '\0'){
+    while(charActual == ' ' || charActual == '\n' || charActual == '\t' || charActual == '#'
+          || charActual == '\"' || charActual == '\'' || charActual == '\0'){
 
-        if(siguienteChar == '#'){
-            while(siguienteChar != '\n'){
-                siguienteChar = siguienteCaracter(ficheroEntrada);
+        if(charActual == '#'){
+            while(charActual != '\n'){
+                charActual = siguienteCaracter(ficheroEntrada);
             }
-
+            moverInicioLexemaADelantero();
+            continue;
         }
-            //Saltamos los comentarios del tipo """ o '''
-        else if(siguienteChar == '\"' || siguienteChar == '\''){
-            if(automataComentariosComillas(&siguienteChar)){
+        //Saltamos los comentarios del tipo """ o '''
+        else if(charActual == '\"' || charActual == '\''){
+            if(automataComentariosComillas(&charActual)){
                 moverInicioLexemaADelantero();
                 continue;
             }
             else break;
         }
-        siguienteChar = siguienteCaracter(ficheroEntrada);
+        charActual = siguienteCaracter(ficheroEntrada);
         contadorCharSaltados++;
     }
 
@@ -91,8 +92,8 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
     // Si el caracter es una letra, podria ser el inicio de una cadema alfanumérica
 
-    if(isalpha(siguienteChar) || siguienteChar == '_'){
-        automataID(&siguienteChar, tokenProcesado);
+    if(isalpha(charActual) || charActual == '_'){
+        automataID(&charActual, tokenProcesado);
 
         tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
 
@@ -101,7 +102,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
             insertarElemento(*tokenProcesado, tabla);
         }
 
-        siguienteChar = siguienteCaracter(ficheroEntrada);
+        charActual = siguienteCaracter(ficheroEntrada);
 
         return 1;
     }
@@ -109,24 +110,24 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
     //-------------------- 2: NÚMEROS --------------------
 
     // Si el caracter es un número, podria ser el inicio de un número
-    if(isdigit(siguienteChar) || siguienteChar == '.'){
+    if(isdigit(charActual) || charActual == '.'){
 
-        if (siguienteChar != '.'){
-            if(automataInts(&siguienteChar, tokenProcesado)){
-
-                tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
-
-                siguienteChar = siguienteCaracter(ficheroEntrada);
+        if (charActual != '.'){
+            if(automataInts(&charActual, tokenProcesado)){
+                
+                tokenProcesado->componente = NUM_INT;
+            
+                charActual = siguienteCaracter(ficheroEntrada);
 
                 return 1;
             }
         }
 
-        if(automataFloats(&siguienteChar, tokenProcesado)){
+        if(automataFloats(&charActual, tokenProcesado)){
 
-            tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
-
-            siguienteChar = siguienteCaracter(ficheroEntrada);
+            tokenProcesado->componente = NUM_FLOAT;
+            
+            charActual = siguienteCaracter(ficheroEntrada);
 
             return 1;
         }
@@ -135,12 +136,12 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
     //-------------------- 3: OPERADORES --------------------
 
     // Si el caracter es un operador, podria ser el inicio de un operador
-    if(siguienteChar == '+' || siguienteChar == '-' || siguienteChar == '*' || siguienteChar == '/' ||
-       siguienteChar == '%' || siguienteChar == '=' || siguienteChar == '!' || siguienteChar == '<' ||
-       siguienteChar == '>' || siguienteChar == '&' || siguienteChar == '|' || siguienteChar == '^' ||
-       siguienteChar == '~' || siguienteChar == '@' || siguienteChar == ':'){
+    if(charActual == '+' || charActual == '-' || charActual == '*' || charActual == '/' ||
+       charActual == '%' || charActual == '=' || charActual == '!' || charActual == '<' ||
+       charActual == '>' || charActual == '&' || charActual == '|' || charActual == '^' ||
+       charActual == '~' || charActual == '@' || charActual == ':'){
 
-        if(automataOp(&siguienteChar, tokenProcesado)){
+        if(automataOp(&charActual, tokenProcesado)){
 
             tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
 
@@ -149,7 +150,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
                 insertarElemento(*tokenProcesado, tabla);
             }
 
-            siguienteChar = siguienteCaracter(ficheroEntrada);
+            charActual = siguienteCaracter(ficheroEntrada);
 
             return 1;
         }
@@ -158,13 +159,13 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
     //-------------------- 4: DELIMITADORES --------------------
 
     // Si el caracter es un delimitador, podria ser el inicio de un delimitador
-    if(siguienteChar == '(' || siguienteChar == ')' || siguienteChar == '{' || siguienteChar == '}' || siguienteChar == '['
-       || siguienteChar == ']' || siguienteChar == ',' || siguienteChar == ';' || siguienteChar == '.' || siguienteChar == ':'
-       || siguienteChar == '=' || siguienteChar == '+' || siguienteChar == '-' || siguienteChar == '*' || siguienteChar == '/'
-       || siguienteChar == '%' || siguienteChar == '@' || siguienteChar == '&' || siguienteChar == '|' || siguienteChar == '^'
-       || siguienteChar == '>' || siguienteChar == '<'){
+    if(charActual == '(' || charActual == ')' || charActual == '{' || charActual == '}' || charActual == '['
+       || charActual == ']' || charActual == ',' || charActual == ';' || charActual == '.' || charActual == ':'
+       || charActual == '=' || charActual == '+' || charActual == '-' || charActual == '*' || charActual == '/'
+       || charActual == '%' || charActual == '@' || charActual == '&' || charActual == '|' || charActual == '^'
+       || charActual == '>' || charActual == '<'){
 
-        if(automataDel(&siguienteChar, tokenProcesado)){
+        if(automataDel(&charActual, tokenProcesado)){
 
             tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
 
@@ -173,7 +174,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
                 insertarElemento(*tokenProcesado, tabla);
             }
 
-            siguienteChar = siguienteCaracter(ficheroEntrada);
+            charActual = siguienteCaracter(ficheroEntrada);
 
             return 1;
         }
@@ -184,13 +185,12 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
     //-------------------- 5: STRINGS -------------------- 
 
     // Si el caracter es una comilla doble, podria ser el inicio de un string   
-    if(siguienteChar == '\"' || siguienteChar == '\''){
-        if(automataString(&siguienteChar, tokenProcesado)){
+    if(charActual == '\"' || charActual == '\''){
+        if(automataString(&charActual, tokenProcesado)){
 
-            tokenProcesado->componente = buscarElemento(tokenProcesado->lexema, *tabla);
-
-
-            siguienteChar = siguienteCaracter(ficheroEntrada);
+            tokenProcesado->componente = STRING;
+            
+            charActual = siguienteCaracter(ficheroEntrada);
 
             return 1;
         }
@@ -203,7 +203,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
 //--------------------------- AUTÓMATAS ------------------------------
 
-void automataID(char *siguienteChar, token *tokenProcesado){
+void automataID(char *charActual, token *tokenProcesado){
 
     int estado = 0;
 
@@ -218,10 +218,10 @@ void automataID(char *siguienteChar, token *tokenProcesado){
 
             case 0:
 
-                if(isalpha(*siguienteChar) || *siguienteChar == '_'){
+                if(isalpha(*charActual) || *charActual == '_'){
                     estado = 1;
 
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else return;
@@ -232,10 +232,10 @@ void automataID(char *siguienteChar, token *tokenProcesado){
 
                 // isalnum devuelve 1 si el caracter es alfanumérico, mientras que isalpha 
                 // devuelve 1 si el caracter es una letra
-                if(isalnum(*siguienteChar) || *siguienteChar == '_'){
+                if(isalnum(*charActual) || *charActual == '_'){
                     estado = 1;
 
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else estado = 2;
@@ -254,7 +254,7 @@ void automataID(char *siguienteChar, token *tokenProcesado){
     }
 }
 
-int automataInts(char *siguienteChar, token *tokenProcesado){
+int automataInts(char *charActual, token *tokenProcesado){
 
     int estado = 0;
 
@@ -270,14 +270,14 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
             case 0:
                 //ASCII del 1..9 
-                if(isdigit(*siguienteChar) && *siguienteChar != '0'){
+                if(isdigit(*charActual) && *charActual != '0'){
                     estado = 1;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '0'){
+                else if(*charActual == '0'){
                     estado = 2;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else {
@@ -293,15 +293,15 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
             case 1:
 
                 //ASCII del 0..9
-                while(isdigit(*siguienteChar) || *siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while(isdigit(*charActual) || *charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                if(!isdigit(*siguienteChar) && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+                if(!isdigit(*charActual) && *charActual != '_' && *charActual != '.' && *charActual != 'e' && *charActual != 'E'){
 
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
 
@@ -310,38 +310,35 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
                     for(int i = 0; i < contadorParaRetroceder; i++){
                         retrocederCaracter();
-                        *siguienteChar = devolverDelantero();
+                        *charActual = devolverDelantero();
                     }
 
                     return 0;
                 }
 
-
-
-
             case 2:
 
-                if(*siguienteChar == 'b' || *siguienteChar == 'B'){
+                if(*charActual == 'b' || *charActual == 'B'){
                     estado = 3;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                else if (*siguienteChar == 'o' || *siguienteChar == 'O'){
+                else if (*charActual == 'o' || *charActual == 'O'){
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                else if (*siguienteChar == 'x' || *siguienteChar == 'X'){
+                else if (*charActual == 'x' || *charActual == 'X'){
                     estado = 5;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
                 else{
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
 
@@ -352,16 +349,16 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
             case 3:
 
-                if(*siguienteChar == '0' || *siguienteChar == '1'){
+                if(*charActual == '0' || *charActual == '1'){
                     estado = 6;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                else if(*siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                else if(*charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
-                    if(*siguienteChar == '0' || *siguienteChar == '1'){
+                    if(*charActual == '0' || *charActual == '1'){
                         estado = 6;
                     }
                 }
@@ -370,7 +367,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
                     for(int i = 0; i < contadorParaRetroceder; i++){
                         retrocederCaracter();
-                        *siguienteChar = devolverDelantero();
+                        *charActual = devolverDelantero();
                     }
                     return 0;
                 }
@@ -379,16 +376,16 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
             case 4:
                 //ASCII del 0..8
-                if(isdigit(*siguienteChar) && *siguienteChar == '9'){
+                if(isdigit(*charActual) && *charActual == '9'){
                     estado = 7;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                else if(*siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                else if(*charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
-                    if(*siguienteChar >= 48 && *siguienteChar <= 56){
+                    if(*charActual >= 48 && *charActual <= 56){
                         estado = 7;
                     }
                 }
@@ -397,7 +394,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
                     for(int i = 0; i < contadorParaRetroceder; i++){
                         retrocederCaracter();
-                        *siguienteChar = devolverDelantero();
+                        *charActual = devolverDelantero();
                     }
                     return 0;
                 }
@@ -406,20 +403,20 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
             case 5:
                 //ASCII del 0..9, a..f y A..F
-                if(isdigit(*siguienteChar)||
-                   (*siguienteChar >= 97 && *siguienteChar <= 102) ||
-                   (*siguienteChar >= 65 && *siguienteChar <= 70) ){
+                if(isdigit(*charActual)||
+                   (*charActual >= 97 && *charActual <= 102) ||
+                   (*charActual >= 65 && *charActual <= 70) ){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                else if(*siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                else if(*charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
-                    if(isdigit(*siguienteChar) ||
-                       (*siguienteChar >= 97 && *siguienteChar <= 102) ||
-                       (*siguienteChar >= 65 && *siguienteChar <= 70) ){
+                    if(isdigit(*charActual) ||
+                       (*charActual >= 97 && *charActual <= 102) ||
+                       (*charActual >= 65 && *charActual <= 70) ){
                         estado = 8;
                     } else return 0;
                 }
@@ -428,7 +425,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
                     for(int i = 0; i < contadorParaRetroceder; i++){
                         retrocederCaracter();
-                        *siguienteChar = devolverDelantero();
+                        *charActual = devolverDelantero();
                     }
                     return 0;
                 }
@@ -437,12 +434,12 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
             case 6:
 
-                while(*siguienteChar == '0' || *siguienteChar == '1' || *siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while(*charActual == '0' || *charActual == '1' || *charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                if(*siguienteChar != '1' && *siguienteChar != 0 && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+                if(*charActual != '1' && *charActual != 0 && *charActual != '_' && *charActual != '.' && *charActual != 'e' && *charActual != 'E'){
                     retrocederCaracter();
 
                     tokenProcesado->lexema = devolverLexema();
@@ -454,7 +451,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
                     for(int i = 0; i < contadorParaRetroceder; i++){
                         retrocederCaracter();
-                        *siguienteChar = devolverDelantero();
+                        *charActual = devolverDelantero();
                     }
 
                     return 0;
@@ -463,14 +460,14 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
             case 7:
                 //ASCII del 0..8
-                while((isdigit(*siguienteChar) && *siguienteChar!='8') || *siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while((isdigit(*charActual) && *charActual!='8') || *charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
                 }
 
-                if(!(*siguienteChar >= 48 && *siguienteChar <= 56) && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+                if(!(*charActual >= 48 && *charActual <= 56) && *charActual != '_' && *charActual != '.' && *charActual != 'e' && *charActual != 'E'){
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
 
@@ -481,27 +478,27 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
 
                     for(int i = 0; i < contadorParaRetroceder; i++){
                         retrocederCaracter();
-                        *siguienteChar = devolverDelantero();
+                        *charActual = devolverDelantero();
                     }
                     return 0;
                 }
 
             case 8:
-                while(isdigit(*siguienteChar) ||
-                      (*siguienteChar >= 97 && *siguienteChar <= 102) ||
-                      (*siguienteChar >= 65 && *siguienteChar <= 70) || *siguienteChar == '_'){
+                while(isdigit(*charActual) ||
+                      (*charActual >= 97 && *charActual <= 102) ||
+                      (*charActual >= 65 && *charActual <= 70) || *charActual == '_'){
 
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                     contadorParaRetroceder++;
 
                 }
 
-                if(!(isdigit(*siguienteChar) ||
-                     (*siguienteChar >= 97 && *siguienteChar <= 102) ||
-                     (*siguienteChar >= 65 && *siguienteChar <= 70) ) && *siguienteChar != '_' && *siguienteChar != '.' && *siguienteChar != 'e' && *siguienteChar != 'E'){
+                if(!(isdigit(*charActual) ||
+                     (*charActual >= 97 && *charActual <= 102) ||
+                     (*charActual >= 65 && *charActual <= 70) ) && *charActual != '_' && *charActual != '.' && *charActual != 'e' && *charActual != 'E'){
 
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     tokenProcesado->lexema = devolverLexema();
                     return 1;
@@ -510,7 +507,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
                 else {
                     for(int i = 0; i < contadorParaRetroceder; i++){
                         retrocederCaracter();
-                        *siguienteChar = devolverDelantero();
+                        *charActual = devolverDelantero();
                     }
                     return 0;
                 }
@@ -519,7 +516,7 @@ int automataInts(char *siguienteChar, token *tokenProcesado){
     }
 }
 
-int automataFloats(char *siguienteChar, token *tokenProcesado){
+int automataFloats(char *charActual, token *tokenProcesado){
 
     int estado = 0;
 
@@ -534,19 +531,19 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
 
             case 0:
                 //ASCII del 1..9
-                if(*siguienteChar >= 48 && *siguienteChar <= 57){
+                if(isdigit(*charActual) && *charActual != '0'){
                     estado = 0;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '.'){
+                else if(*charActual == '.'){
                     estado = 1;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == 'e' || *siguienteChar == 'E'){
+                else if(*charActual == 'e' || *charActual == 'E'){
                     estado = 2;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else return 0;
@@ -555,21 +552,21 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
 
             case 1:
                 //ASCII del 0..9
-                while(*siguienteChar >= 48 && *siguienteChar <= 57 || *siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while(isdigit(*charActual) || *charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                if(*siguienteChar == 'j'){
+                if(*charActual == 'j'){
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else{
 
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
-                    if(*siguienteChar == '.'){
+                    if(*charActual == '.'){
                         return 0;
                     }
 
@@ -581,13 +578,13 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
 
             case 2:
                 //ASCII del 0..9
-                while(*siguienteChar >= 48 && *siguienteChar <= 57 || *siguienteChar == '+' || *siguienteChar == '-' || *siguienteChar == '_'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while(isdigit(*charActual) || *charActual == '+' || *charActual == '-' || *charActual == '_'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                if(*siguienteChar == 'j'){
+                if(*charActual == 'j'){
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else{
@@ -603,7 +600,7 @@ int automataFloats(char *siguienteChar, token *tokenProcesado){
     }
 }
 
-int automataOp(char *siguienteChar, token *tokenProcesado){
+int automataOp(char *charActual, token *tokenProcesado){
 
     int estado = 0;
 
@@ -617,43 +614,43 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
 
             case 0:
 
-                if(*siguienteChar == '+'|| *siguienteChar == '%' || *siguienteChar == '&' || *siguienteChar == '|' || *siguienteChar == '@' || *siguienteChar == '^'){
+                if(*charActual == '+'|| *charActual == '%' || *charActual == '&' || *charActual == '|' || *charActual == '@' || *charActual == '^'){
                     estado = 1;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '*'){
+                else if (*charActual == '*'){
                     estado = 2;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '~'){
+                else if (*charActual == '~'){
                     estado = 10;
                 }
 
-                else if (*siguienteChar == '/'){
+                else if (*charActual == '/'){
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == ':' || *siguienteChar == '=' || *siguienteChar == '!'){
+                else if (*charActual == ':' || *charActual == '=' || *charActual == '!'){
                     estado = 5;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '>'){
+                else if (*charActual == '>'){
                     estado = 6;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '<'){
+                else if (*charActual == '<'){
                     estado = 7;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '-' ){
+                else if(*charActual == '-' ){
                     estado = 9;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else return 0;
@@ -662,13 +659,13 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
 
             case 1:
 
-                if(*siguienteChar != '='){
+                if(*charActual != '='){
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 } else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     return 0;
                 }
@@ -676,20 +673,20 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
                 break;
 
             case 2:
-                if(*siguienteChar == '*'){
+                if(*charActual == '*'){
                     estado = 3;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar != '='){
+                else if (*charActual != '='){
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 }
 
                 else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -697,15 +694,15 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
 
             case 3:
 
-                if(*siguienteChar != '='){
+                if(*charActual != '='){
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 } else {
                     //Retrocedemos dos veces porque el automata leyo '**'
                     retrocederCaracter();
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -713,20 +710,20 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
 
             case 4:
 
-                if(*siguienteChar == '/'){
+                if(*charActual == '/'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar != '='){
+                else if (*charActual != '='){
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 }
 
                 else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -734,11 +731,11 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
 
             case 5:
 
-                if(*siguienteChar == '='){
+                if(*charActual == '='){
                     estado = 10;
                 } else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -746,65 +743,65 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
 
             case 6:
 
-                if(*siguienteChar == '>'){
+                if(*charActual == '>'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '='){
+                else if(*charActual == '='){
                     estado = 10;
                 }
 
                 else {
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 }
 
                 break;
 
             case 7:
 
-                if(*siguienteChar == '<'){
+                if(*charActual == '<'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '='){
+                else if(*charActual == '='){
                     estado = 10;
                 }
 
                 else {
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 }
 
                 break;
 
             case 8:
 
-                if(*siguienteChar != '='){
+                if(*charActual != '='){
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 } else { // Retrocedemos dos veces porque el automata leyo '<<' o '>>' o '//'
                     retrocederCaracter();
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
                 break;
 
             case 9:
 
-                if(*siguienteChar != '=' && *siguienteChar != '>'){
+                if(*charActual != '=' && *charActual != '>'){
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 } else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -819,7 +816,7 @@ int automataOp(char *siguienteChar, token *tokenProcesado){
     }
 }
 
-int automataDel(char *siguienteChar, token *tokenProcesado){
+int automataDel(char *charActual, token *tokenProcesado){
 
     int estado = 0;
 
@@ -833,45 +830,45 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             //Incial
             case 0:
-                if(*siguienteChar == '(' || *siguienteChar == ')' || *siguienteChar == '{' || *siguienteChar == '}' || *siguienteChar == '['
-                   || *siguienteChar == ']' || *siguienteChar == ',' || *siguienteChar == ';' || *siguienteChar == '.'){
+                if(*charActual == '(' || *charActual == ')' || *charActual == '{' || *charActual == '}' || *charActual == '['
+                   || *charActual == ']' || *charActual == ',' || *charActual == ';' || *charActual == '.'){
                     estado = 10;
                 }
 
-                else if( *siguienteChar == '^' || *siguienteChar == '&' || *siguienteChar == '|'
-                         || *siguienteChar == '@' || *siguienteChar == '%' || *siguienteChar == '+'){
+                else if( *charActual == '^' || *charActual == '&' || *charActual == '|'
+                         || *charActual == '@' || *charActual == '%' || *charActual == '+'){
                     estado = 1;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == ':' || *siguienteChar == '='){
+                else if (*charActual == ':' || *charActual == '='){
                     estado = 2;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '-'){
+                else if (*charActual == '-'){
                     estado = 3;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '/'){
+                else if (*charActual == '/'){
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '<'){
+                else if (*charActual == '<'){
                     estado = 5;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '>'){
+                else if (*charActual == '>'){
                     estado = 6;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if (*siguienteChar == '*'){
+                else if (*charActual == '*'){
                     estado = 7;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else return 0;
@@ -879,12 +876,12 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 1:
 
-                if(*siguienteChar == '='){
+                if(*charActual == '='){
                     estado = 10;
 
                 }  else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -892,13 +889,13 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 2:
 
-                if(*siguienteChar != '='){
+                if(*charActual != '='){
                     estado = 10;
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                 }  else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -906,11 +903,11 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 3:
 
-                if(*siguienteChar == '=' || *siguienteChar == '>'){
+                if(*charActual == '=' || *charActual == '>'){
                     estado = 10;
                 }  else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -918,18 +915,18 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 4:
 
-                if(*siguienteChar == '/'){
+                if(*charActual == '/'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '='){
+                else if(*charActual == '='){
                     estado = 10;
                 }
 
                 else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -937,12 +934,12 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 5:
 
-                if(*siguienteChar == '<'){
+                if(*charActual == '<'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }  else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -950,12 +947,12 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 6:
 
-                if(*siguienteChar == '>'){
+                if(*charActual == '>'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 } else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -963,18 +960,18 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 7:
 
-                if(*siguienteChar == '*'){
+                if(*charActual == '*'){
                     estado = 8;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '='){
+                else if(*charActual == '='){
                     estado = 10;
                 }
 
                 else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -982,12 +979,12 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
 
             case 8:
 
-                if(*siguienteChar == '='){
+                if(*charActual == '='){
                     estado = 10;
                 }  else { // Retrocedemos dos veces porque el automata leyo '//' o '<<' o '>>' o '**'
                     retrocederCaracter();
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
                     return 0;
                 }
 
@@ -1002,7 +999,7 @@ int automataDel(char *siguienteChar, token *tokenProcesado){
     }
 }
 
-int automataString(char *siguienteChar, token *tokenProcesado){
+int automataString(char *charActual, token *tokenProcesado){
 
     int estado = 0;
 
@@ -1017,19 +1014,19 @@ int automataString(char *siguienteChar, token *tokenProcesado){
 
             case 0:
 
-                if(*siguienteChar == '\"'){
+                if(*charActual == '\"'){
                     estado = 1;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                else if(*siguienteChar == '\''){
+                else if(*charActual == '\''){
                     estado = 2;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else{
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     return 0;
                 }
@@ -1038,26 +1035,26 @@ int automataString(char *siguienteChar, token *tokenProcesado){
 
             case 1:
 
-                if(*siguienteChar != '\"'){
+                if(*charActual != '\"'){
                     estado = 3;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 else{
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 break;
 
             case 2:
 
-                if(*siguienteChar != '\''){
+                if(*charActual != '\''){
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 } else{
                     estado = 5;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 break;
@@ -1065,11 +1062,11 @@ int automataString(char *siguienteChar, token *tokenProcesado){
 
             case 3:
 
-                while(*siguienteChar != '\"'){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while(*charActual != '\"'){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                if(*siguienteChar == '\"'){
+                if(*charActual == '\"'){
                     estado = 5;
                 }
 
@@ -1079,11 +1076,11 @@ int automataString(char *siguienteChar, token *tokenProcesado){
 
             case 4:
 
-                while(*siguienteChar != '\''){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while(*charActual != '\''){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                if(*siguienteChar == '\''){
+                if(*charActual == '\''){
                     estado = 5;
                 }
 
@@ -1103,17 +1100,17 @@ int automataString(char *siguienteChar, token *tokenProcesado){
     }
 }
 
-int automataComentariosComillas(char *siguienteChar){
+int automataComentariosComillas(char *charActual){
 
     int estado = 0;
-    char tipoComillas = ' ';
+    char tipoComillas = ' '; //Guarda el tipo de comillas que se está leyendo para simplificar el automata
 
     /**
      * Ver automata en automatasPNG (ambos caminos del automata fueron colapsados en uno solo
      * para simplificar el código, ya que ambos caminos son iguales)
      *
      * Estado 0: Inicial
-     * Estados 6: Finales
+     * Estados 6: Final
     */
     while(1){
 
@@ -1121,27 +1118,27 @@ int automataComentariosComillas(char *siguienteChar){
 
             case 0:
 
-                if(*siguienteChar == '\"'){
+                if(*charActual == '\"'){
                     tipoComillas = '\"';
                     estado = 1;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
 
-                } else if(*siguienteChar == '\''){
+                } else if(*charActual == '\''){
                     tipoComillas = '\'';
                     estado = 1;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
 
                 } else return 0;
 
                 break;
 
             case 1:
-                if(*siguienteChar == tipoComillas){
+                if(*charActual == tipoComillas){
                     estado = 2;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 } else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     return 0;
                 }
@@ -1149,12 +1146,12 @@ int automataComentariosComillas(char *siguienteChar){
                 break;
 
             case 2:
-                if(*siguienteChar == tipoComillas){
+                if(*charActual == tipoComillas){
                     estado = 3;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 } else {
                     retrocederCaracter();
-                    *siguienteChar = devolverDelantero();
+                    *charActual = devolverDelantero();
 
                     return 0;
                 }
@@ -1163,13 +1160,13 @@ int automataComentariosComillas(char *siguienteChar){
 
             case 3:
 
-                while(*siguienteChar != tipoComillas){
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                while(*charActual != tipoComillas){
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
-                if(*siguienteChar == tipoComillas){
+                if(*charActual == tipoComillas){
                     estado = 4;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 } else {
                     return 0;
                 }
@@ -1178,24 +1175,24 @@ int automataComentariosComillas(char *siguienteChar){
 
             case 4:
 
-                if(*siguienteChar == tipoComillas){
+                if(*charActual == tipoComillas){
                     estado = 5;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 } else {
                     estado = 3;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 break;
 
             case 5:
 
-                if(*siguienteChar == tipoComillas){
+                if(*charActual == tipoComillas){
                     estado = 6;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 } else {
                     estado = 3;
-                    *siguienteChar = siguienteCaracter(ficheroEntrada);
+                    *charActual = siguienteCaracter(ficheroEntrada);
                 }
 
                 break;

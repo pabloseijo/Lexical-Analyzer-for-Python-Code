@@ -1,6 +1,5 @@
 /**
  * @file tablaHash.h
- * @author Pablo Seijo García
  * @date 21/02/2024
  * @brief Define una estructura y operaciones básicas para manejar una 
  * tabla de hash para tokens.

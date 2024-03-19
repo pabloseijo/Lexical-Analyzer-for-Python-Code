@@ -1,6 +1,5 @@
 /**
  * @file sistemaEntrada.c
- * @author Pablo Seijo García
  * @date 27/02/2024
  * @brief Definición de las funciones del sistema de entrada
  * 
@@ -12,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFF_SIZE 12000
+#define BUFF_SIZE 512
 
 /**
  * Mueve el puntero delantero una posición hacia atrás

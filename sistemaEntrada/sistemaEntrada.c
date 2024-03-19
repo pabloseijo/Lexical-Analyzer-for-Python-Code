@@ -1,9 +1,8 @@
 /**
  * @file sistemaEntrada.c
- * @author Pablo Seijo García
  * @date 27/02/2024
  * @brief Implementacion de las funciones del sistema de entrada
- * 
+ *
  * Lee los caracteres del archivo uno a uno y los va devolviendo,
  * si un caracter no es procesado, se devuelve para poder ser leído
  * de nuevo
@@ -18,7 +17,7 @@ typedef struct dobleBuffering{
     char bufferB[BUFF_SIZE];
     char *inicioLexema;
     char *delantero; // Apunta los caracteres procesados
-} dobleBuffering; 
+} dobleBuffering;
 
 dobleBuffering dobleCentinela;
 
@@ -32,9 +31,6 @@ int inicioEnBufferB();
 // Inicializa la estructura de doble centinela y carga el primer bloque
 void inicializarDobleCentinela (FILE *file){
 
-    dobleCentinela.bufferA[BUFF_SIZE - 1] = EOF;
-    dobleCentinela.bufferB[BUFF_SIZE - 1] = EOF;
-
     dobleCentinela.inicioLexema = dobleCentinela.bufferA;
     dobleCentinela.delantero = dobleCentinela.bufferA;
 
@@ -45,7 +41,7 @@ void inicializarDobleCentinela (FILE *file){
 void retrocederCaracter() {
 
     if( (delanteroEnBufferA() && dobleCentinela.delantero > dobleCentinela.bufferA) || (delanteroEnBufferB() && dobleCentinela.delantero > dobleCentinela.bufferB) ){
-        dobleCentinela.delantero --;
+        dobleCentinela.delantero--;
 
     } else {
         //TODO: el puntero del archivo esta delante, gestionar esto
@@ -61,42 +57,36 @@ void retrocederCaracter() {
 
 // Lee los caracteres del archivo y los devuelve uno a uno
 char siguienteCaracter(FILE *file) {
-
-    char charLeido;
-
-    if(*dobleCentinela.delantero != EOF){
+    // Incrementa 'delantero' solo si no apunta a EOF. Esto es para leer el próximo carácter.
+    if (*dobleCentinela.delantero != EOF) {
         dobleCentinela.delantero++;
-        charLeido = *dobleCentinela.delantero;
+    }
 
-        return charLeido;
-
-    } else {
-        if(dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 1  
-            || dobleCentinela.delantero == dobleCentinela.bufferB + BUFF_SIZE - 1){
-
+    // Verifica si hemos llegado al fin de un buffer y necesitamos cargar el próximo bloque.
+    if (*dobleCentinela.delantero == EOF) {
+        if (dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 1 || dobleCentinela.delantero == dobleCentinela.bufferB + BUFF_SIZE - 1) {
             cargarBloque(file);
-
-            charLeido = *dobleCentinela.delantero;
-            dobleCentinela.delantero++;
-
-            return charLeido;
-
-        } else {
-            return EOF;
         }
     }
-    
+
+    // Si después de intentar cargar un nuevo bloque aún estamos en EOF, es EOF real.
+    if (*dobleCentinela.delantero == EOF) {
+        return EOF;
+    } else {
+        return *dobleCentinela.delantero;
+    }
 }
+
 
 // Devuelve el lexema leído hasta el momento
 char *devolverLexema(){
 
     char *lexemaDevuelto;
     int longitudLexema;
-    
+
     if ( (delanteroEnBufferA() && inicioEnBufferA()) || (delanteroEnBufferB() && inicioEnBufferB()) ) {
         longitudLexema = dobleCentinela.delantero - dobleCentinela.inicioLexema;
-  
+
     } else {  // Los punteros están en diferentes buffers
         if (inicioEnBufferA()) {
             longitudLexema = ( (dobleCentinela.bufferA + BUFF_SIZE - 2) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferB);
@@ -133,18 +123,26 @@ char devolverDelantero(){
 //------------------------------------------ FUNCIONES PRIVADAS --------------------------------------------------
 
 // Carga un bloque con los siguientes char
-void cargarBloque(FILE *file){
+void cargarBloque(FILE *file) {
+    static int cargarEnBufferA = 1;  // Empezamos cargando en bufferA. (Al ser static, mantiene su valor entre llamadas.)
+    size_t itemsRead;
 
-    // fread nos permite leer un bloque de tamaño BUFF_SIZE del arhcivo
-    // buffer(A y B) apunta a la primera posición del array
-    if(dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 1){
-        fread(dobleCentinela.bufferB, sizeof(char), BUFF_SIZE, file);
-        dobleCentinela.delantero = dobleCentinela.bufferB;
-
+    if (cargarEnBufferA) {
+        itemsRead = fread(dobleCentinela.bufferA, sizeof(char), BUFF_SIZE - 1, file);
+        dobleCentinela.bufferA[itemsRead] = EOF;  // Marcador de EOF.
+        dobleCentinela.delantero = dobleCentinela.bufferA;  // Reinicia el delantero.
+        cargarEnBufferA = 0;  // Próxima carga en bufferB.
     } else {
-        fread(dobleCentinela.bufferA, sizeof(char), BUFF_SIZE, file);
-        dobleCentinela.delantero = dobleCentinela.bufferA;
+        itemsRead = fread(dobleCentinela.bufferB, sizeof(char), BUFF_SIZE - 1, file);
+        dobleCentinela.bufferB[itemsRead] = EOF;  // Marcador de EOF.
+        dobleCentinela.delantero = dobleCentinela.bufferB;  // Mueve el delantero.
+        cargarEnBufferA = 1;  // Próxima carga en bufferA.
+    }
 
+    // Si no se leyeron datos, hemos alcanzado el EOF real.
+    if (itemsRead == 0) {
+        printf("EOF real\n");
+        *dobleCentinela.delantero = EOF;  // Asegurarse de que EOF esté correctamente asignado.
     }
 }
 

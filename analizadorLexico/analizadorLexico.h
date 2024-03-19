@@ -1,6 +1,5 @@
 /**
  * @file analizadorLexico.h
- * @author Pablo Seijo García
  * @date 30/02/2024
  * @brief Definición de las funciones del sistema del analizador léxico
  */
