@@ -42,41 +42,25 @@ void retrocederCaracter() {
 
     if( (delanteroEnBufferA() && dobleCentinela.delantero > dobleCentinela.bufferA) || (delanteroEnBufferB() && dobleCentinela.delantero > dobleCentinela.bufferB) ){
         dobleCentinela.delantero--;
-
-    } else {
-        //TODO: el puntero del archivo esta delante, gestionar esto
-        if (inicioEnBufferA()) {
-            dobleCentinela.delantero = dobleCentinela.bufferA + BUFF_SIZE - 2;
-
-        } else {
-            dobleCentinela.delantero = dobleCentinela.bufferB + BUFF_SIZE - 2;
-        }
     }
 
 }
 
 // Lee los caracteres del archivo y los devuelve uno a uno
 char siguienteCaracter(FILE *file) {
-    // Incrementa 'delantero' solo si no apunta a EOF. Esto es para leer el próximo carácter.
-    if (*dobleCentinela.delantero != EOF) {
-        dobleCentinela.delantero++;
+    // Verifica si el delantero apunta al último caracter del buffer actual antes de EOF
+    if ((delanteroEnBufferA() && (dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 2)) ||
+        (delanteroEnBufferB() && (dobleCentinela.delantero == dobleCentinela.bufferB + BUFF_SIZE - 2))) {
+        cargarBloque(file); // Cargar el siguiente bloque al alcanzar el fin del buffer actual
     }
+    else if (*dobleCentinela.delantero == EOF) { // Si delantero apunta a EOF, pero no está al final del buffer, es EOF real
+        exit(EXIT_SUCCESS);
+    } else dobleCentinela.delantero++;
 
-    // Verifica si hemos llegado al fin de un buffer y necesitamos cargar el próximo bloque.
-    if (*dobleCentinela.delantero == EOF) {
-        if (dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 1 || dobleCentinela.delantero == dobleCentinela.bufferB + BUFF_SIZE - 1) {
-            cargarBloque(file);
-        }
-    }
 
-    // Si después de intentar cargar un nuevo bloque aún estamos en EOF, es EOF real.
-    if (*dobleCentinela.delantero == EOF) {
-        return EOF;
-    } else {
-        return *dobleCentinela.delantero;
-    }
+    // Devolver el caracter actual
+    return *dobleCentinela.delantero;
 }
-
 
 // Devuelve el lexema leído hasta el momento
 char *devolverLexema(){
@@ -87,23 +71,65 @@ char *devolverLexema(){
     if ( (delanteroEnBufferA() && inicioEnBufferA()) || (delanteroEnBufferB() && inicioEnBufferB()) ) {
         longitudLexema = dobleCentinela.delantero - dobleCentinela.inicioLexema;
 
+        if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+            fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for(int i = 0; i <= longitudLexema; i++) {
+            lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
+        }
+
     } else {  // Los punteros están en diferentes buffers
         if (inicioEnBufferA()) {
-            longitudLexema = ( (dobleCentinela.bufferA + BUFF_SIZE - 2) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferB);
+            longitudLexema = ( (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferB);
+
+            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+                fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
+                exit(EXIT_FAILURE);
+            }
+
+            char* aux = dobleCentinela.inicioLexema;
+            int cont = 0;
+
+            while(aux < dobleCentinela.bufferA + BUFF_SIZE - 1){
+                lexemaDevuelto[cont++] = *aux;
+                aux++;
+            }
+
+            aux = dobleCentinela.bufferB;
+
+            while(aux <= dobleCentinela.delantero){
+                lexemaDevuelto[cont++] = *aux;
+                aux++;
+            }
 
         } else { // Inicio lexema en Buffer B
-            longitudLexema = ( (dobleCentinela.bufferB + BUFF_SIZE - 2) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferA);
+            longitudLexema = ( (dobleCentinela.bufferB + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferA);
+
+            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+                fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
+                exit(EXIT_FAILURE);
+            }
+
+            char* aux = dobleCentinela.inicioLexema;
+            int cont = 0;
+
+            while(aux < dobleCentinela.bufferB + BUFF_SIZE - 1){
+                lexemaDevuelto[cont++] = *aux;
+                aux++;
+            }
+
+            aux = dobleCentinela.bufferA;
+
+            while(aux <= dobleCentinela.delantero){
+                lexemaDevuelto[cont++] = *aux;
+                aux++;
+            }
         }
     }
 
-    if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
-        fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
-        exit(EXIT_FAILURE);
-    }
 
-    for(int i = 0; i <= longitudLexema; i++) {
-        lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
-    }
 
     moverInicioLexemaADelantero();
 
@@ -122,29 +148,54 @@ char devolverDelantero(){
 
 //------------------------------------------ FUNCIONES PRIVADAS --------------------------------------------------
 
+
+void imprimirBuffers() {
+    printf("Buffer A:\n");
+    for(int i = 0; i < BUFF_SIZE; i++) {
+        // Imprime cada caracter del bufferA en formato hexadecimal
+        printf(" %c |", dobleCentinela.bufferA[i]);
+        // Para hacer la salida más legible, puedes agregar una nueva línea cada N caracteres
+        if ((i + 1) % 16 == 0) {
+            printf("\n");
+        }
+    }
+
+    printf("\nBuffer B:\n");
+    for(int i = 0; i < BUFF_SIZE; i++) {
+        // Imprime cada caracter del bufferB en formato hexadecimal
+        printf(" %c |", dobleCentinela.bufferB[i]);
+        // Nueva línea cada N caracteres para mejorar la legibilidad
+        if ((i + 1) % 16 == 0) {
+            printf("\n");
+        }
+    }
+    printf("\n"); // Finaliza con una nueva línea
+}
+
 // Carga un bloque con los siguientes char
 void cargarBloque(FILE *file) {
-    static int cargarEnBufferA = 1;  // Empezamos cargando en bufferA. (Al ser static, mantiene su valor entre llamadas.)
-    size_t itemsRead;
+    static int cargarEnBufferA = 0;  // Cambio inicial para comenzar con el Buffer A, y luego alternar
 
-    if (cargarEnBufferA) {
-        itemsRead = fread(dobleCentinela.bufferA, sizeof(char), BUFF_SIZE - 1, file);
-        dobleCentinela.bufferA[itemsRead] = EOF;  // Marcador de EOF.
-        dobleCentinela.delantero = dobleCentinela.bufferA;  // Reinicia el delantero.
-        cargarEnBufferA = 0;  // Próxima carga en bufferB.
-    } else {
-        itemsRead = fread(dobleCentinela.bufferB, sizeof(char), BUFF_SIZE - 1, file);
-        dobleCentinela.bufferB[itemsRead] = EOF;  // Marcador de EOF.
-        dobleCentinela.delantero = dobleCentinela.bufferB;  // Mueve el delantero.
-        cargarEnBufferA = 1;  // Próxima carga en bufferA.
+    // Alternar entre cargar en Buffer A y Buffer B
+    cargarEnBufferA = !cargarEnBufferA;
+
+    char* bufferActual = cargarEnBufferA ? dobleCentinela.bufferA : dobleCentinela.bufferB;
+
+    for(int i = 0; i < BUFF_SIZE; i++) {
+        bufferActual[i] = '\0';
     }
 
-    // Si no se leyeron datos, hemos alcanzado el EOF real.
-    if (itemsRead == 0) {
-        printf("EOF real\n");
-        *dobleCentinela.delantero = EOF;  // Asegurarse de que EOF esté correctamente asignado.
-    }
+    size_t itemsLeidos = fread(bufferActual, sizeof(char), BUFF_SIZE - 1, file);
+
+    // Establecer EOF al final del contenido leído, si es necesario
+    bufferActual[itemsLeidos < BUFF_SIZE - 1 ? itemsLeidos : BUFF_SIZE - 1] = EOF;
+
+    // Ajustar el puntero delantero al inicio del nuevo buffer
+    dobleCentinela.delantero = bufferActual;
+
+    imprimirBuffers();
 }
+
 
 // Devuelve 1 si delanreo está en el bufferA, 0 en caso contrario
 int delanteroEnBufferA(){

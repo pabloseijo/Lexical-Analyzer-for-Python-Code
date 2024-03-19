@@ -198,6 +198,8 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
     tokenProcesado->lexema = NULL;
 
+    printf("No hay lexema\n");
+
     return 0;
 }
 
