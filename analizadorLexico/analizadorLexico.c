@@ -145,7 +145,6 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
             if(tokenProcesado->componente == 0){
                 tokenProcesado->componente = OP;
-                insertarElemento(*tokenProcesado, tabla);
             }
 
             charActual = siguienteCaracter(ficheroEntrada);
@@ -169,7 +168,6 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
             if(tokenProcesado->componente == 0){
                 tokenProcesado->componente = DEL;
-                insertarElemento(*tokenProcesado, tabla);
             }
 
             charActual = siguienteCaracter(ficheroEntrada);
