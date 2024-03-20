@@ -20,6 +20,7 @@ typedef struct dobleBuffering{
 } dobleBuffering;
 
 dobleBuffering dobleCentinela;
+int charRetrocedidoAlInicioBuffer = 0;
 
 // Funciones privadas
 void cargarBloque(FILE *file);
@@ -42,23 +43,30 @@ void retrocederCaracter() {
 
     if( (delanteroEnBufferA() && dobleCentinela.delantero > dobleCentinela.bufferA) || (delanteroEnBufferB() && dobleCentinela.delantero > dobleCentinela.bufferB) ){
         dobleCentinela.delantero--;
+
+    } else if (dobleCentinela.delantero == dobleCentinela.bufferA || dobleCentinela.delantero == dobleCentinela.bufferB) {
+        charRetrocedidoAlInicioBuffer = 1;
     }
 
 }
 
 // Lee los caracteres del archivo y los devuelve uno a uno
 char siguienteCaracter(FILE *file) {
-    // Verifica si el delantero apunta al último caracter del buffer actual antes de EOF
+
+    if (charRetrocedidoAlInicioBuffer) {
+        charRetrocedidoAlInicioBuffer = 0; // Restablecer después de reconocer el estado
+        return *dobleCentinela.delantero; // Devuelve el carácter retrocedido sin mover el delantero
+    }
+
     if ((delanteroEnBufferA() && (dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 2)) ||
         (delanteroEnBufferB() && (dobleCentinela.delantero == dobleCentinela.bufferB + BUFF_SIZE - 2))) {
-        cargarBloque(file); // Cargar el siguiente bloque al alcanzar el fin del buffer actual
-    }
-    else if (*dobleCentinela.delantero == EOF) { // Si delantero apunta a EOF, pero no está al final del buffer, es EOF real
+        cargarBloque(file); 
+
+    } else if (*dobleCentinela.delantero == EOF) { 
         exit(EXIT_SUCCESS);
+        
     } else dobleCentinela.delantero++;
 
-
-    // Devolver el caracter actual
     return *dobleCentinela.delantero;
 }
 
@@ -97,12 +105,14 @@ char *devolverLexema(){
                 aux++;
             }
 
-            aux = dobleCentinela.bufferB;
+            if(!charRetrocedidoAlInicioBuffer){
+                aux = dobleCentinela.bufferB;
 
-            while(aux <= dobleCentinela.delantero){
-                lexemaDevuelto[cont++] = *aux;
-                aux++;
-            }
+                while(aux <= dobleCentinela.delantero){
+                    lexemaDevuelto[cont++] = *aux;
+                    aux++;
+                }
+            } 
 
         } else { // Inicio lexema en Buffer B
             longitudLexema = ( (dobleCentinela.bufferB + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferA);
@@ -120,19 +130,18 @@ char *devolverLexema(){
                 aux++;
             }
 
-            aux = dobleCentinela.bufferA;
+            if(!charRetrocedidoAlInicioBuffer){
+                aux = dobleCentinela.bufferA;
 
-            while(aux <= dobleCentinela.delantero){
-                lexemaDevuelto[cont++] = *aux;
-                aux++;
-            }
+                while(aux <= dobleCentinela.delantero){
+                    lexemaDevuelto[cont++] = *aux;
+                    aux++;
+                }
+            } 
         }
     }
 
-
-
     moverInicioLexemaADelantero();
-
     return lexemaDevuelto;
 }
 
@@ -174,9 +183,8 @@ void imprimirBuffers() {
 
 // Carga un bloque con los siguientes char
 void cargarBloque(FILE *file) {
-    static int cargarEnBufferA = 0;  // Cambio inicial para comenzar con el Buffer A, y luego alternar
+    static int cargarEnBufferA = 0;  // Static hace que la variable mantenga su valor entre llamadas a la función
 
-    // Alternar entre cargar en Buffer A y Buffer B
     cargarEnBufferA = !cargarEnBufferA;
 
     char* bufferActual = cargarEnBufferA ? dobleCentinela.bufferA : dobleCentinela.bufferB;
@@ -187,10 +195,8 @@ void cargarBloque(FILE *file) {
 
     size_t itemsLeidos = fread(bufferActual, sizeof(char), BUFF_SIZE - 1, file);
 
-    // Establecer EOF al final del contenido leído, si es necesario
     bufferActual[itemsLeidos < BUFF_SIZE - 1 ? itemsLeidos : BUFF_SIZE - 1] = EOF;
 
-    // Ajustar el puntero delantero al inicio del nuevo buffer
     dobleCentinela.delantero = bufferActual;
 
     imprimirBuffers();

@@ -196,9 +196,12 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
         }
     }
 
-    tokenProcesado->lexema = NULL;
+    if(charActual == '\000' || charActual == EOF){
+        tokenProcesado->componente = EOF;
 
-    printf("No hay lexema\n");
+        printf("Fin de fichero\n");
+        return 0;
+    }
 
     return 0;
 }
