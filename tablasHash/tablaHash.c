@@ -57,7 +57,7 @@ int deleteHashTable(hashTable *tabla){
             // Para cada elemento de la tabla hay una lista enlazada de tokens
             token *actual = *tabla[i];
 
-            while (actual != NULL) {
+            while (actual->lexema != NULL) {
                 token *temp = actual; 
                 actual = actual->next;
 
@@ -126,7 +126,7 @@ int resizeHashTable(hashTable *tabla, int newSize) {
 
 // Muestra el contenido actual de la tabla para depuración.
 void printTable(hashTable tabla) {
-    printf("START\n");
+    printf("\nSTART\n");
 
     for (int index = 0; index < TABLE_SIZE; index++) {
         printf("%d\t", index); 

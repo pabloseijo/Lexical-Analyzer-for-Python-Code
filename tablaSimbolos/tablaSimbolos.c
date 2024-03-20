@@ -25,7 +25,7 @@ int inicializarTabla(hashTable *tabla){
     keywords[8] = "as";
 
     // Metemos 50 espacios para minimar el numero de redimensiones
-    if(initHashTable(tabla, 50) == 0){
+    if(initHashTable(tabla, 100) == 0){
         printf("Error al inicializar la tabla de hash\n");
         return 0;
     }

@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sistemaEntrada.h"
+#include "../gestionErrores/gestionErrores.h"
 
 typedef struct dobleBuffering{
     char bufferA[BUFF_SIZE];
@@ -60,6 +61,7 @@ char siguienteCaracter(FILE *file) {
 
     if ((delanteroEnBufferA() && (dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 2)) ||
         (delanteroEnBufferB() && (dobleCentinela.delantero == dobleCentinela.bufferB + BUFF_SIZE - 2))) {
+
         cargarBloque(file); 
 
     } else if (*dobleCentinela.delantero == EOF) { 
@@ -82,6 +84,16 @@ char *devolverLexema(){
         if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
             fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
             exit(EXIT_FAILURE);
+
+        } else if(longitudLexema > TAM_LEXEMA){ // Lanzamos la excepción
+            tamLexemaExcedido(); 
+
+            // Devuelve la primera parte del lexema que quepa en el tamaño máximo
+            for(int i = 0; i <= TAM_LEXEMA; i++) {
+                lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
+            }
+
+            return lexemaDevuelto;
         }
 
         for(int i = 0; i <= longitudLexema; i++) {
@@ -92,52 +104,106 @@ char *devolverLexema(){
         if (inicioEnBufferA()) {
             longitudLexema = ( (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferB);
 
-            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
-                fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
-                exit(EXIT_FAILURE);
-            }
-
             char* aux = dobleCentinela.inicioLexema;
             int cont = 0;
 
-            while(aux < dobleCentinela.bufferA + BUFF_SIZE - 1){
-                lexemaDevuelto[cont++] = *aux;
-                aux++;
-            }
+            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+                fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
+                exit(EXIT_FAILURE);
 
-            if(!charRetrocedidoAlInicioBuffer){
-                aux = dobleCentinela.bufferB;
+            } else if(longitudLexema > TAM_LEXEMA){
+                tamLexemaExcedido();
 
-                while(aux <= dobleCentinela.delantero){
+                // Devuelve la primera parte del lexema que quepa en el tamaño máximo
+                if(TAM_LEXEMA < (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema){
+                    for(int i = 0; i < TAM_LEXEMA; i++) {
+                        lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
+                    }
+                } else {
+
+                    while(aux < dobleCentinela.bufferA + BUFF_SIZE - 1){
+                        lexemaDevuelto[cont++] = *aux;
+                        aux++;
+                    }
+
+                    if(!charRetrocedidoAlInicioBuffer){
+                        aux = dobleCentinela.bufferB;
+
+                        while(cont < TAM_LEXEMA){
+                            lexemaDevuelto[cont++] = *aux;
+                            aux++;
+                        }
+                    } 
+                }
+
+                return lexemaDevuelto;
+            } else {
+
+                while(aux < dobleCentinela.bufferA + BUFF_SIZE - 1){
                     lexemaDevuelto[cont++] = *aux;
                     aux++;
                 }
-            } 
+
+                if(!charRetrocedidoAlInicioBuffer){
+                    aux = dobleCentinela.bufferB;
+
+                    while(aux <= dobleCentinela.delantero){
+                        lexemaDevuelto[cont++] = *aux;
+                        aux++;
+                    }
+                } 
+            }
 
         } else { // Inicio lexema en Buffer B
             longitudLexema = ( (dobleCentinela.bufferB + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferA);
 
-            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
-                fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
-                exit(EXIT_FAILURE);
-            }
-
             char* aux = dobleCentinela.inicioLexema;
             int cont = 0;
 
-            while(aux < dobleCentinela.bufferB + BUFF_SIZE - 1){
-                lexemaDevuelto[cont++] = *aux;
-                aux++;
-            }
+            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+                fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
+                exit(EXIT_FAILURE);
 
-            if(!charRetrocedidoAlInicioBuffer){
-                aux = dobleCentinela.bufferA;
+            } else if(longitudLexema > TAM_LEXEMA){
+                tamLexemaExcedido();
 
-                while(aux <= dobleCentinela.delantero){
+                // Devuelve la primera parte del lexema que quepa en el tamaño máximo
+                if(TAM_LEXEMA < (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema){
+                    for(int i = 0; i < TAM_LEXEMA; i++) {
+                        lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
+                    }
+                } else {
+
+                    while(aux < dobleCentinela.bufferA + BUFF_SIZE - 1){
+                        lexemaDevuelto[cont++] = *aux;
+                        aux++;
+                    }
+
+                    if(!charRetrocedidoAlInicioBuffer){
+                        aux = dobleCentinela.bufferB;
+
+                        while(cont < TAM_LEXEMA){
+                            lexemaDevuelto[cont++] = *aux;
+                            aux++;
+                        }
+                    }
+                }
+
+            } else {
+                while(aux < dobleCentinela.bufferB + BUFF_SIZE - 1){
                     lexemaDevuelto[cont++] = *aux;
                     aux++;
                 }
-            } 
+
+                if(!charRetrocedidoAlInicioBuffer){
+                    aux = dobleCentinela.bufferA;
+
+                    while(aux <= dobleCentinela.delantero){
+                        lexemaDevuelto[cont++] = *aux;
+                        aux++;
+                    }
+                } 
+            }
         }
     }
 
@@ -157,30 +223,6 @@ char devolverDelantero(){
 
 //------------------------------------------ FUNCIONES PRIVADAS --------------------------------------------------
 
-
-void imprimirBuffers() {
-    printf("Buffer A:\n");
-    for(int i = 0; i < BUFF_SIZE; i++) {
-        // Imprime cada caracter del bufferA en formato hexadecimal
-        printf(" %c |", dobleCentinela.bufferA[i]);
-        // Para hacer la salida más legible, puedes agregar una nueva línea cada N caracteres
-        if ((i + 1) % 16 == 0) {
-            printf("\n");
-        }
-    }
-
-    printf("\nBuffer B:\n");
-    for(int i = 0; i < BUFF_SIZE; i++) {
-        // Imprime cada caracter del bufferB en formato hexadecimal
-        printf(" %c |", dobleCentinela.bufferB[i]);
-        // Nueva línea cada N caracteres para mejorar la legibilidad
-        if ((i + 1) % 16 == 0) {
-            printf("\n");
-        }
-    }
-    printf("\n"); // Finaliza con una nueva línea
-}
-
 // Carga un bloque con los siguientes char
 void cargarBloque(FILE *file) {
     static int cargarEnBufferA = 0;  // Static hace que la variable mantenga su valor entre llamadas a la función
@@ -198,8 +240,6 @@ void cargarBloque(FILE *file) {
     bufferActual[itemsLeidos < BUFF_SIZE - 1 ? itemsLeidos : BUFF_SIZE - 1] = EOF;
 
     dobleCentinela.delantero = bufferActual;
-
-    imprimirBuffers();
 }
 
 
@@ -222,3 +262,4 @@ int delanteroEnBufferB(){
 int inicioEnBufferB(){
     return (dobleCentinela.inicioLexema >= dobleCentinela.bufferB && dobleCentinela.inicioLexema <= dobleCentinela.bufferB + BUFF_SIZE - 2);
 }
+

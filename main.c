@@ -15,13 +15,13 @@ int main(){
 
     FILE *ficheroEntrada = fopen("wilcoxon.py", "r");
 
-
-
     inicializarDobleCentinela(ficheroEntrada);
 
     hashTable tabla;
 
     inicializarTabla(&tabla);
+
+    imprimirTabla(tabla);
 
     seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
 
@@ -29,6 +29,10 @@ int main(){
         printf("Lexema: %s \tID: %d\n", t.lexema, t.componente);
         seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
     }
+
+    imprimirTabla(tabla);
+
+    destruirTabla(&tabla);
 
 
     printf("\n");

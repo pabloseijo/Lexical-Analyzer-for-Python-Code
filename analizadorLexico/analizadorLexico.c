@@ -535,8 +535,8 @@ int automataFloats(char *charActual, token *tokenProcesado){
         switch(estado){
 
             case 0:
-                //ASCII del 1..9
-                if(isdigit(*charActual) && *charActual != '0'){
+                //ASCII del 0..9
+                if(isdigit(*charActual)){
                     estado = 0;
                     *charActual = siguienteCaracter(ficheroEntrada);
                 }
@@ -564,16 +564,12 @@ int automataFloats(char *charActual, token *tokenProcesado){
                 if(*charActual == 'j'){
                     estado = 4;
                     *charActual = siguienteCaracter(ficheroEntrada);
-                }
+                } 
 
                 else{
 
                     retrocederCaracter();
                     *charActual = devolverDelantero();
-
-                    if(*charActual == '.'){
-                        return 0;
-                    }
 
                     tokenProcesado->lexema = devolverLexema();
                     return 1;
