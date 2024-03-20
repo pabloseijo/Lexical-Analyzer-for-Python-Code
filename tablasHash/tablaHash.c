@@ -45,7 +45,7 @@ int initHashTable(hashTable *tabla, int size){
 }
 
 // Libera los recursos asociados con la tabla de hash.
-int deleteHashTable(hashTable *tabla){
+int deleteHashTable(hashTable tabla){
 
     if(tabla == NULL){
         printf("ERROR: La tabla no existe\n");
@@ -55,9 +55,9 @@ int deleteHashTable(hashTable *tabla){
     for (int i = 0; i < TABLE_SIZE; i++) {
         if (tabla[i] != NULL) {
             // Para cada elemento de la tabla hay una lista enlazada de tokens
-            token *actual = *tabla[i];
+            token *actual = tabla[i];
 
-            while (actual->lexema != NULL) {
+            while (actual != NULL) {
                 token *temp = actual; 
                 actual = actual->next;
 

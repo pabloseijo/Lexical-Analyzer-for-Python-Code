@@ -18,8 +18,6 @@
 
 FILE* ficheroEntrada;
 
-
-
 //Autómata para el componente léxico ID
 void automataID(char *charActual, token *tokenProcesado);
 

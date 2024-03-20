@@ -32,8 +32,7 @@ int main(){
 
     imprimirTabla(tabla);
 
-    destruirTabla(&tabla);
-
+    destruirTabla(tabla);
 
     printf("\n");
 }

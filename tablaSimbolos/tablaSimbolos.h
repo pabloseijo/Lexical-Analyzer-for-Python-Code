@@ -42,7 +42,7 @@ int inicializarTabla(hashTable *tabla);
  * @brief Función que destruye la tabla de símbolos
  * @param tabla: tabla de símbolos que se destruirá
 */
-void destruirTabla(hashTable *tabla);
+void destruirTabla(hashTable tabla);
 
 /**
  * @brief Función que imprime la tabla de símbolos

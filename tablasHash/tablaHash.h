@@ -44,7 +44,7 @@ int initHashTable(hashTable *tabla, int size);
  * @param tabla Puntero a la tabla de hash.
  * @return Siempre devuelve 1.
  */
-int deleteHashTable(hashTable *tabla);
+int deleteHashTable(hashTable tabla);
 
 /**
  * Redimensiona la tabla de hash a un nuevo tamaño.

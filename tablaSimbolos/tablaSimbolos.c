@@ -41,7 +41,7 @@ int inicializarTabla(hashTable *tabla){
 }
 
 // Destruye la tabla de símbolos llamando a la funcion de la tabla de hash
-void destruirTabla(hashTable *tabla){
+void destruirTabla(hashTable tabla){
     deleteHashTable(tabla);
 }
 
