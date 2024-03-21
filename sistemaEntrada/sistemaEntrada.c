@@ -77,11 +77,12 @@ char *devolverLexema(){
 
     char *lexemaDevuelto;
     int longitudLexema;
-
+    
+    //Sumamos 1 al final de la longitud para incluir el caracter actual en la resta de punteros
     if ( (delanteroEnBufferA() && inicioEnBufferA()) || (delanteroEnBufferB() && inicioEnBufferB()) ) {
-        longitudLexema = dobleCentinela.delantero - dobleCentinela.inicioLexema;
+        longitudLexema = dobleCentinela.delantero - dobleCentinela.inicioLexema + 1;
 
-        if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+        if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * (longitudLexema + 1))) == NULL) {
             fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
             exit(EXIT_FAILURE);
 
@@ -102,12 +103,12 @@ char *devolverLexema(){
 
     } else {  // Los punteros están en diferentes buffers
         if (inicioEnBufferA()) {
-            longitudLexema = ( (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferB);
+            longitudLexema = ( (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferB) + 1;
 
             char* aux = dobleCentinela.inicioLexema;
             int cont = 0;
 
-            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * (longitudLexema + 1))) == NULL) {
                 fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
                 exit(EXIT_FAILURE);
 
@@ -155,12 +156,12 @@ char *devolverLexema(){
             }
 
         } else { // Inicio lexema en Buffer B
-            longitudLexema = ( (dobleCentinela.bufferB + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferA);
+            longitudLexema = ( (dobleCentinela.bufferB + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferA) + 1;
 
             char* aux = dobleCentinela.inicioLexema;
             int cont = 0;
 
-            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * longitudLexema)) == NULL) {
+            if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * (longitudLexema + 1))) == NULL) {
                 fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
                 exit(EXIT_FAILURE);
 
@@ -206,6 +207,8 @@ char *devolverLexema(){
             }
         }
     }
+    printf("longitudLexema: %d\n", longitudLexema);
+    lexemaDevuelto[longitudLexema] = '\0';
 
     moverInicioLexemaADelantero();
     return lexemaDevuelto;

@@ -21,7 +21,7 @@ int main(){
 
     inicializarTabla(&tabla);
 
-    imprimirTabla(tabla);
+    //imprimirTabla(tabla);
 
     seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
 
@@ -30,7 +30,7 @@ int main(){
         seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
     }
 
-    imprimirTabla(tabla);
+    //imprimirTabla(tabla);
 
     destruirTabla(tabla);
 
