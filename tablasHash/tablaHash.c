@@ -58,11 +58,12 @@ int deleteHashTable(hashTable tabla){
             token *actual = tabla[i];
 
             while (actual != NULL) {
-                token *temp = actual; 
-                actual = actual->next;
+                token *siguiente = actual->next;
 
-                free(temp->lexema); 
-                free(temp);
+                free(actual->lexema); // Libera el lexema del token
+                free(actual); // Libera el token
+
+                actual = siguiente;
             }
         }
     }

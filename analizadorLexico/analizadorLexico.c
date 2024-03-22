@@ -117,7 +117,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
             
                 charActual = siguienteCaracter(ficheroEntrada);
 
-                return 1;
+                return 1; // Devolvemos -1 para que el analizador sintáctico sepa que se debe liberar el lexema
             }
         }
 
@@ -149,7 +149,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
             charActual = siguienteCaracter(ficheroEntrada);
 
-            return 1;
+            return 1; // Devolvemos -1 para que el analizador sintáctico sepa que se debe liberar el lexema
         }
     }
 
@@ -188,7 +188,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
             
             charActual = siguienteCaracter(ficheroEntrada);
 
-            return 1;
+            return 1; // Devolvemos -1 para que el analizador sintáctico sepa que se debe liberar el lexema
         }
     }
 

@@ -14,15 +14,15 @@ int inicializarTabla(hashTable *tabla){
 
     char *keywords[9];
 
-    keywords[0] = "for";
-    keywords[1] = "if";
-    keywords[2] = "else";
-    keywords[3] = "in";
-    keywords[4] = "not";
-    keywords[5] = "return";
-    keywords[6] = "import";
-    keywords[7] = "from";
-    keywords[8] = "as";
+    keywords[0] = "for\0";
+    keywords[1] = "if\0";
+    keywords[2] = "else\0";
+    keywords[3] = "in\0";
+    keywords[4] = "not\0";
+    keywords[5] = "return\0";
+    keywords[6] = "import\0";
+    keywords[7] = "from\0";
+    keywords[8] = "as\0";
 
     // Metemos 50 espacios para minimar el numero de redimensiones
     if(initHashTable(tabla, 100) == 0){

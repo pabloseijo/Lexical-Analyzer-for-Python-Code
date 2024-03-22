@@ -6,12 +6,12 @@
 #include "./definiciones.h"
 #include "./tablaSimbolos/tablaSimbolos.h"
 #include "./sistemaEntrada/sistemaEntrada.h"
+#include "./analizadorSintactico/analizadorSintactico.h"
 
 // Incluye aquí todas las librerías necesarias de esta carpeta
 
 
 int main(){
-    token t;
 
     FILE *ficheroEntrada = fopen("wilcoxon.py", "r");
 
@@ -22,17 +22,13 @@ int main(){
     inicializarTabla(&tabla);
 
     //imprimirTabla(tabla);
-
-    seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
-
-    while (t.componente != EOF){
-        printf("Lexema: %s \tID: %d\n", t.lexema, t.componente);
-        seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
-    }
+    
+    iniciarAnalisis(tabla, ficheroEntrada);
 
     //imprimirTabla(tabla);
 
     destruirTabla(tabla);
+    fclose(ficheroEntrada);
 
     printf("\n");
 }
