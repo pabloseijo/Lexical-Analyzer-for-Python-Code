@@ -70,8 +70,6 @@ int deleteHashTable(hashTable tabla){
 
     free(tabla);
 
-    printf("Tabla Destruida\n");
-
     return 1;
 }
 

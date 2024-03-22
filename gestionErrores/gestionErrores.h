@@ -27,4 +27,9 @@ void tamLexemaExcedido();
  */
 void caracterNoReconocido(char c);
 
+/**
+ * @brief Se ha excedido el tamaño máximo de la tabla de símbolos
+ * 
+ */
+void numParametrosIncorrecto();
 #endif

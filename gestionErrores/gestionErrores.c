@@ -14,6 +14,7 @@
 //No se encuentra el fichero y se sale del programa
 void ficheroNoEncontrado(char *nombreFichero){
     printf("ERROR: No se ha encontrado el fichero %s\n", nombreFichero);
+    EXIT_FAILURE;
 }
 
 //Se ha excedido el tamaño máximo del lexema
@@ -26,3 +27,9 @@ void caracterNoReconocido(char c){
     printf("ERROR: Caracter no reconocido: %c\n", c);
 }
 
+//Se ha excedido el tamaño máximo de la tabla de símbolos
+void numParametrosIncorrecto(){
+    printf("ERROR: El numero de parámetros introducido es incorrecto\n");
+    printf("Uso: ./ejecutable <fichero_entrada>\n");
+    EXIT_FAILURE;
+}

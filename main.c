@@ -7,13 +7,23 @@
 #include "./tablaSimbolos/tablaSimbolos.h"
 #include "./sistemaEntrada/sistemaEntrada.h"
 #include "./analizadorSintactico/analizadorSintactico.h"
+#include "./gestionErrores/gestionErrores.h"
 
 // Incluye aquí todas las librerías necesarias de esta carpeta
 
 
-int main(){
+int main(int argc,char *argv[]){
 
-    FILE *ficheroEntrada = fopen("wilcoxon.py", "r");
+    FILE *ficheroEntrada;
+    char *nombreFichero = argv[1];
+
+    if(argc != 2){
+        numParametrosIncorrecto();
+    }
+
+    if( (ficheroEntrada = fopen(nombreFichero, "r")) == NULL){
+        ficheroNoEncontrado(nombreFichero);
+    }
 
     inicializarDobleCentinela(ficheroEntrada);
 
@@ -21,11 +31,11 @@ int main(){
 
     inicializarTabla(&tabla);
 
-    //imprimirTabla(tabla);
+    imprimirTabla(tabla);
     
     iniciarAnalisis(tabla, ficheroEntrada);
 
-    //imprimirTabla(tabla);
+    imprimirTabla(tabla);
 
     destruirTabla(tabla);
     fclose(ficheroEntrada);
