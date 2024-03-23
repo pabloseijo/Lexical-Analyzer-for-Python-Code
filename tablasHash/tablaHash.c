@@ -78,7 +78,7 @@ int resizeHashTable(hashTable *tabla, int newSize) {
 
     // Paso 1: Crear una nueva tabla de hash del nuevo tamaño que sera nuestra nueva tabla
 
-    hashTable nuevaTabla = (token **) malloc (sizeof(token *) * newSize);
+    hashTable nuevaTabla = malloc (sizeof(token *) * newSize);
 
     if (nuevaTabla == NULL) {
         printf("ERROR: Fallo al asignar nueva tabla de hash\n");
@@ -126,6 +126,7 @@ int resizeHashTable(hashTable *tabla, int newSize) {
 // Muestra el contenido actual de la tabla para depuración.
 void printTable(hashTable tabla) {
     printf("\nSTART\n");
+
 
     for (int index = 0; index < TABLE_SIZE; index++) {
         printf("%d\t", index); 

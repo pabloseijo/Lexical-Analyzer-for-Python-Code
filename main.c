@@ -30,7 +30,7 @@ int main(int argc,char *argv[]){
 
     imprimirTabla(tabla);
     
-    iniciarAnalisis(tabla, ficheroEntrada);
+    iniciarAnalisis(&tabla, ficheroEntrada);
 
     imprimirTabla(tabla);
 

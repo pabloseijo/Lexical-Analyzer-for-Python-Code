@@ -21,7 +21,7 @@ void imprimirComponenteLexico(token c);
  * @param tabla: tabla de símbolos en la que se buscará el siguiente componente léxico
  * @param ficheroEntrada: fichero de entrada
  */
-void iniciarAnalisis(hashTable tabla, FILE *ficheroEntrada) {
+void iniciarAnalisis(hashTable *tabla, FILE *ficheroEntrada) {
     token t;
 
     printf("%-33s %-10s\n", "Lexema", "ID");
@@ -30,7 +30,7 @@ void iniciarAnalisis(hashTable tabla, FILE *ficheroEntrada) {
     do { //Pedimos componentes lexicos al analizadorLexico hasta que reciba EOF.
         printf("--------------------------------- ----------\n");
 
-        int liberarMemoria = seguinte_comp_lexico(&t, &tabla, ficheroEntrada);
+        int liberarMemoria = seguinte_comp_lexico(&t, tabla, ficheroEntrada);
         //Si ha habido algún error, o es el fin de fichero no se imprime el componente.
         if (t.componente != EOF) {
             imprimirComponenteLexico(t);

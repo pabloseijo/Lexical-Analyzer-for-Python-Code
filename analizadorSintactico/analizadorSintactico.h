@@ -20,6 +20,6 @@
  * @param tabla: tabla de símbolos en la que se buscará el siguiente componente léxico
  * @param ficheroEntrada: fichero de entrada
  */
-void iniciarAnalisis(hashTable tabla, FILE *ficheroEntrada);
+void iniciarAnalisis(hashTable *tabla, FILE *ficheroEntrada);
 
 #endif // ANALIZADORSINTACTICO_H
