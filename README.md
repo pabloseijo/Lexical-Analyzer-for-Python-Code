@@ -105,6 +105,8 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose .
 
 ## Automátas
 
+Los autómatas presentados en el código `analizadorLexico/analizadorLexico.c` son los mostrados a continuación. Cabe destacar que con objetivo de simplificar el código, pueden haberse cambiado algunas funcionalidades, siempre manteniendo la esencia de los autómatas.
+
 ### Delimitadores
 
 ![Delimitadores](automatasPNG/delAutomaton.jpg "Delimitadores")
