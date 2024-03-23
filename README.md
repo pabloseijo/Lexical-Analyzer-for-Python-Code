@@ -10,6 +10,7 @@ Esto es un proyecto de un compilador simple de python desarrollado para la mater
   - [Características](#características)
   - [Compilación](#compilación)
   - [Uso](#uso)
+      - [Con Valgrind](#con-valgrind)
   - [Automátas](#automátas)
     - [Delimitadores](#delimitadores)
     - [Operadores](#operadores)
@@ -57,6 +58,35 @@ Para utilizar el compilador con un archivo de código fuente, sigue estos pasos:
 ```
 ./bin/miCompilador wilcoxon.py
 ```
+
+#### Con Valgrind
+
+Si no tienes valgrind instalado:
+
+***Mac***:
+
+```
+brew install valgrind
+```
+
+***Linux***:
+
+```
+sudo apt install valgrind
+```
+
+Y comprobamos que se instalo correctamente:
+
+```
+valgrind --version
+```
+
+**Ejecución**:
+
+```
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose ./bin/miCompilador wilcoxon.py
+```
+
 
 ## Automátas
 

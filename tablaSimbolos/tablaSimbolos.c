@@ -12,6 +12,8 @@
 #include "../definiciones.h"
 #include "tablaSimbolos.h"
 
+#define TAM_INICIAL 100 // Metemos 100 espacios para minimizar el numero de redimensiones (puedes bajarlo para probar el resize)
+
 // Inicializacion de la tabla de símbolos con las palabras reservadas del lenguaje
 int inicializarTabla(hashTable *tabla){
 
@@ -27,8 +29,7 @@ int inicializarTabla(hashTable *tabla){
     keywords[7] = "from";
     keywords[8] = "as";
 
-    // Metemos 100 espacios para minimar el numero de redimensiones
-    if(initHashTable(tabla, 30) == 0){
+    if(initHashTable(tabla, TAM_INICIAL) == 0){
         printf("Error al inicializar la tabla de hash\n");
         return 0;
     }
