@@ -8,6 +8,8 @@ Esto es un proyecto de un compilador simple de python desarrollado para la mater
   - [Tabla de Contenidos](#tabla-de-contenidos)
   - [Estructura del Proyecto](#estructura-del-proyecto)
   - [Características](#características)
+    - [Tamaño de la tabla hash](#Tamaño-de-la-tabla-hash)
+    - [Tamaño del buffer](#Tamaño-del-buffer)
   - [Compilación](#compilación)
   - [Uso](#uso)
       - [Con Valgrind](#con-valgrind)
