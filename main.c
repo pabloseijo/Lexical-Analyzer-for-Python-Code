@@ -9,9 +9,6 @@
 #include "./analizadorSintactico/analizadorSintactico.h"
 #include "./gestionErrores/gestionErrores.h"
 
-// Incluye aquí todas las librerías necesarias de esta carpeta
-
-
 int main(int argc,char *argv[]){
 
     FILE *ficheroEntrada;

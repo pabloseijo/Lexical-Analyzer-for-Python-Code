@@ -2,6 +2,9 @@
  * @file analizadorSintactico.c
  * @date 26/02/2024
  * @brief Implementación de las funciones del analizador sintáctico
+ * 
+ * Este archivo contiene la implementación de las funciones del analizador sintáctico. 
+ * Se encarga de pedir componentes léxicos al analizador léxico y de imprimirlos.
 */
 
 #include <stdio.h>
@@ -14,8 +17,9 @@
 void imprimirComponenteLexico(token c);
 
 /**
- * Función que inicia el análisis léxico, pidiendo componentes léxicos al analizador
- * léxico hasta que este devuelva el componente asociado a EOF.
+ * @brief Función que inicia el análisis léxico, pidiendo componentes léxicos al analizador
+ * @param tabla: tabla de símbolos en la que se buscará el siguiente componente léxico
+ * @param ficheroEntrada: fichero de entrada
  */
 void iniciarAnalisis(hashTable tabla, FILE *ficheroEntrada) {
     token t;
@@ -37,9 +41,7 @@ void iniciarAnalisis(hashTable tabla, FILE *ficheroEntrada) {
     } while (t.componente != EOF);
 }
 
-/**
- * Función privada que imprime los pares <lexema, componente> que recibe el analizador sintáctico.
- */
+// Imprime el componente léxico en la consola
 void imprimirComponenteLexico(token t) {
     // Imprime los valores en el mismo ancho de columna que las cabeceras
     printf("%-33s %-10d\n", t.lexema, t.componente);

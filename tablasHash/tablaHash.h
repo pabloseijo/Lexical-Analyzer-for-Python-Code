@@ -17,8 +17,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MAX_NAME 256 // Ponemos un tamaño máximo para los lexemas
-
 // Estructura para almacenar componentes léxicos.
 typedef struct token {
     int componente;  // Código numérico del componente léxico.
@@ -26,7 +24,8 @@ typedef struct token {
     struct token *next; // Para manejar colisiones mediante listas enlazadas.
 } token;
 
-// Alias para mejorar la legibilidad del código al trabajar con la tabla de hash.
+// Alias para mejorar la legibilidad del código al trabajar con la tabla de hash. 
+// El doble puntero se debe a que es un array de punteros a estructura.
 typedef token **hashTable;
 
 /**

@@ -15,6 +15,7 @@
 #include "analizadorLexico.h"
 #include "../definiciones.h"
 #include "../sistemaEntrada/sistemaEntrada.h"
+#include "../gestionErrores/gestionErrores.h"
 
 FILE* ficheroEntrada;
 
@@ -39,6 +40,10 @@ int automataString(char *charActual, token *tokenProcesado);
 //Salta los comentarios del tipo """ o '''
 int automataComentariosComillas(char *charActual);
 
+//----------------------------------------------------------
+//-------------------- FUNCION PRINCIPAL--------------------
+//----------------------------------------------------------
+
 // Función que devuelve el siguiente token (es decir el siguiente componente léxico)
 int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero){
 
@@ -51,8 +56,9 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
     //-------------------- COMENTARIOS Y ESPACIOS --------------------
 
-    // Para este analizador léxico, saltamos los comentarios y los espacio en blanco
-    // que en python los comentarios empiezan con #
+    // Para este analizador léxico, saltamos los comentarios y los espacio en blanco, tabuladores y saltos de línea.
+    // Los comentruiois los identificamos con el caracter '#'.
+    // Los comentarios de tipo """ o ''' los saltamos con el automataComentariosComillas
 
     char charActual = devolverDelantero();
     moverInicioLexemaADelantero();
@@ -116,8 +122,6 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
                 tokenProcesado->componente = NUM_INT;
             
                 charActual = siguienteCaracter(ficheroEntrada);
-
-                return 1; // Devolvemos -1 para que el analizador sintáctico sepa que se debe liberar el lexema
             }
         }
 
@@ -126,9 +130,9 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
             tokenProcesado->componente = NUM_FLOAT;
             
             charActual = siguienteCaracter(ficheroEntrada);
-
-            return 1;
         }
+
+        return 1; 
     }
 
     //-------------------- 3: OPERADORES --------------------
@@ -149,7 +153,7 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
 
             charActual = siguienteCaracter(ficheroEntrada);
 
-            return 1; // Devolvemos -1 para que el analizador sintáctico sepa que se debe liberar el lexema
+            return 1;
         }
     }
 
@@ -188,21 +192,31 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
             
             charActual = siguienteCaracter(ficheroEntrada);
 
-            return 1; // Devolvemos -1 para que el analizador sintáctico sepa que se debe liberar el lexema
+            return 1;
         }
     }
+
+    //-------------------- 6: FIN DE FICHERO o CARACTER DESCONOCIDO --------------------
 
     if(charActual == '\000' || charActual == EOF){
         tokenProcesado->componente = EOF;
 
         printf("Fin de fichero\n");
         return 0;
+
+    } else {
+        caracterNoReconocido(charActual);
+        return 0;
     }
 
-    return 0;
 }
 
+
+
+
+//--------------------------------------------------------------------
 //--------------------------- AUTÓMATAS ------------------------------
+//--------------------------------------------------------------------
 
 void automataID(char *charActual, token *tokenProcesado){
 

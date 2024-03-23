@@ -15,7 +15,7 @@
 #define TAM_LEXEMA BUFF_SIZE
 
 /**
- * Mueve el puntero delantero una posición hacia atrás
+ * El puntero delantero una posición hacia atrás
 */
 void retrocederCaracter();
 

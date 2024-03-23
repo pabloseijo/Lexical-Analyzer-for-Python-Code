@@ -17,12 +17,12 @@
 typedef struct dobleBuffering{
     char bufferA[BUFF_SIZE];
     char bufferB[BUFF_SIZE];
-    char *inicioLexema;
+    char *inicioLexema; // Apunta al inicio del lexema
     char *delantero; // Apunta los caracteres procesados
 } dobleBuffering;
 
 dobleBuffering dobleCentinela;
-int charRetrocedidoAlInicioBuffer = 0;
+int charRetrocedidoAlInicioBuffer = 0; // Indica si se ha retrocedido un carácter al inicio del buffer
 
 // Funciones privadas
 void cargarBloque(FILE *file);
@@ -43,10 +43,13 @@ void inicializarDobleCentinela (FILE *file){
 // Mete un caracter leído y no procesado en el buffer
 void retrocederCaracter() {
 
+    // Si el delantero está en el bufferA y no está en el primer caracter del buffer o si está en el bufferB y no está en el primer caracter del buffer
     if( (delanteroEnBufferA() && dobleCentinela.delantero > dobleCentinela.bufferA) || (delanteroEnBufferB() && dobleCentinela.delantero > dobleCentinela.bufferB) ){
         dobleCentinela.delantero--;
 
-    } else if (dobleCentinela.delantero == dobleCentinela.bufferA || dobleCentinela.delantero == dobleCentinela.bufferB) {
+    } 
+    // Si el delantero se encuentra en el primer caracter del bufferA o bufferB
+    else if (dobleCentinela.delantero == dobleCentinela.bufferA || dobleCentinela.delantero == dobleCentinela.bufferB) {
         charRetrocedidoAlInicioBuffer = 1;
     }
 
@@ -59,7 +62,7 @@ char siguienteCaracter(FILE *file) {
         charRetrocedidoAlInicioBuffer = 0; // Restablecer después de reconocer el estado
         return *dobleCentinela.delantero; // Devuelve el carácter retrocedido sin mover el delantero
     }
-
+    // Si el delantero está en el último caracter del bufferA o bufferB
     if ((delanteroEnBufferA() && (dobleCentinela.delantero == dobleCentinela.bufferA + BUFF_SIZE - 2)) ||
         (delanteroEnBufferB() && (dobleCentinela.delantero == dobleCentinela.bufferB + BUFF_SIZE - 2))) {
 
@@ -79,7 +82,8 @@ char *devolverLexema(){
     char *lexemaDevuelto;
     int longitudLexema;
 
-    //Sumamos 1 al final de la longitud para incluir el caracter actual en la resta de punteros
+    //--------------------------------- 1: Caso en el que los punteros están en el mismo buffer ---------------------------------
+
     if ( (delanteroEnBufferA() && inicioEnBufferA()) || (delanteroEnBufferB() && inicioEnBufferB()) ) {
         longitudLexema = dobleCentinela.delantero - dobleCentinela.inicioLexema + 1;
 
@@ -105,28 +109,39 @@ char *devolverLexema(){
             lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
         }
 
-    } else {  // Los punteros están en diferentes buffers
+    } 
+    
+    //--------------------------------- 2: Caso en el que los punteros están en buffers diferentes ---------------------------------
+
+    else {  // Los punteros están en diferentes buffers
+
+        //--------------------------------- 2.1: Caso en el que el inicio del lexema está en el buffer A ---------------------------------
+
         if (inicioEnBufferA()) {
             longitudLexema = ( (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferB) + 1;
 
             char* aux = dobleCentinela.inicioLexema;
             int cont = 0;
 
+            // Reservamos memoria para el lexema devuelto
             if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * (longitudLexema + 1))) == NULL) {
                 fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
                 exit(EXIT_FAILURE);
 
-            } else if(longitudLexema > TAM_LEXEMA){
+            } else if(longitudLexema > TAM_LEXEMA){ // Lanzamos la excepción
                 tamLexemaExcedido();
 
                 memset(lexemaDevuelto, 0, longitudLexema + 1); // Inicializamos a 0 el string
 
-                // Devuelve la primera parte del lexema que quepa en el tamaño máximo
+                // Devuelve la primera parte del lexema que quepa en el tamaño máximo si la primera parrte esta en un solo buffer
                 if(TAM_LEXEMA < (dobleCentinela.bufferA + BUFF_SIZE - 1) - dobleCentinela.inicioLexema){
                     for(int i = 0; i < TAM_LEXEMA; i++) {
                         lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
                     }
-                } else {
+
+                } 
+                // Devuelve la primera parte del lexema que quepa en el tamaño máximo si la primera parte está en dos buffers
+                else {
 
                     while(aux < dobleCentinela.bufferA + BUFF_SIZE - 1){
                         lexemaDevuelto[cont++] = *aux;
@@ -144,7 +159,8 @@ char *devolverLexema(){
                 }
 
                 return lexemaDevuelto;
-            } else {
+
+            } else { // Si el lexema no excede el tamaño máximo
 
                 memset(lexemaDevuelto, 0, longitudLexema + 1); // Inicializamos a 0 el string
 
@@ -163,19 +179,22 @@ char *devolverLexema(){
                 } 
             }
 
-        } else { // Inicio lexema en Buffer B
+        } 
+        
+        //--------------------------------- 2.2: Caso en el que el inicio del lexema está en el buffer B ---------------------------------
+
+        else { // Inicio lexema en Buffer B
             longitudLexema = ( (dobleCentinela.bufferB + BUFF_SIZE - 1) - dobleCentinela.inicioLexema) + (dobleCentinela.delantero - dobleCentinela.bufferA) + 1;
 
             char* aux = dobleCentinela.inicioLexema;
             int cont = 0;
 
-          
-
+            // Reservamos memoria para el lexema devuelto
             if ( (lexemaDevuelto = (char *) malloc (sizeof(char) * (longitudLexema + 1))) == NULL) {
                 fprintf(stderr, "ERROR sistemaEntrada.c: no se pudo reservar memoria para el lexema devuelto\n");
                 exit(EXIT_FAILURE);
 
-            } else if(longitudLexema > TAM_LEXEMA){
+            } else if(longitudLexema > TAM_LEXEMA){ // Lanzamos la excepción
                 tamLexemaExcedido();
                 memset(lexemaDevuelto, 0, longitudLexema + 1); // Inicializamos a 0 el string
 
@@ -184,7 +203,11 @@ char *devolverLexema(){
                     for(int i = 0; i < TAM_LEXEMA; i++) {
                         lexemaDevuelto[i] = *(dobleCentinela.inicioLexema + i);
                     }
-                } else {
+
+                } 
+                
+                //Si no esta en un solo buffer
+                else {
 
                     while(aux < dobleCentinela.bufferA + BUFF_SIZE - 1){
                         lexemaDevuelto[cont++] = *aux;
@@ -201,7 +224,10 @@ char *devolverLexema(){
                     }
                 }
 
-            } else {
+            } 
+            
+            // Si el lexema no excede el tamaño máximo
+            else {
 
                 memset(lexemaDevuelto, 0, longitudLexema + 1); // Inicializamos a 0 el string
 

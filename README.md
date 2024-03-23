@@ -10,6 +10,12 @@ Esto es un proyecto de un compilador simple de python desarrollado para la mater
   - [Características](#características)
   - [Compilación](#compilación)
   - [Uso](#uso)
+  - [Automátas](#automátas)
+    - [Delimitadores](#delimitadores)
+    - [Operadores](#operadores)
+    - [Strings](#strings)
+    - [Ints](#ints)
+    - [Floats](#floats)
 
 ## Estructura del Proyecto
 
@@ -51,6 +57,30 @@ Para utilizar el compilador con un archivo de código fuente, sigue estos pasos:
 ```
 ./bin/miCompilador wilcoxon.py
 ```
+
+## Automátas
+
+### Delimitadores
+
+![Delimitadores](automatasPNG/delAutomaton.jpg "Delimitadores")
+
+### Operadores
+
+![Operadores](automatasPNG/opAutomaton.jpg "Operadores")
+
+### Strings
+
+![Strings](automatasPNG/stringAutomaton.jpg "Strings")
+
+### Ints
+
+![Ints](automatasPNG/intAutomaton.jpg "Ints")
+
+### Floats
+
+![Floats](automatasPNG/floatAutomaton.jpg "Floats")
+
+
 
 ---
 

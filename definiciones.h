@@ -4,10 +4,6 @@
  * @brief Fichero que contiene las definiciones de los componentes léxicos
 */
 
-
-//                              !!! IMPORTANTE !!!
-//! La estructura de datos de los tokens se encuentra en tablaHash/tablaHash.h !
-
 //--------------------------- Definiciones ------------------------------
 
 // Definiciones para las keywords 
