@@ -1,3 +1,9 @@
+/**
+ * @file analizadorSintactico.h
+ * @date 26/02/2024
+ * @brief Definición de las funciones del analizador sintáctico
+*/
+
 #ifndef ANALIZADORSINTACTICO_H
 #define ANALIZADORSINTACTICO_H
 

@@ -1,39 +1,57 @@
-# 📖 Lexical Analyzer for Python Code 🐍
+# Compilador Python Simplificado ![Lenguaje](https://img.shields.io/badge/Lenguaje-C-green.svg) ![GCC](https://img.shields.io/badge/Compilado%20con-GCC-red.svg)
 
-This project aims to create a lexical analyzer that processes Python code, specifically targeting a file named `wilcoxon.py`. The analyzer identifies and returns the lexical components found within the source code. This document outlines the structure and implementation approach for the analyzer, divided into several key components for modularity and ease of development.
+Esto es un proyecto de un compilador simple de python desarrollado para la materia de compiladores e intérpretes de la Universidade de Santiago de Compostela en el grado de Ingeniería Informática (2ª edición).
 
-## 📁 Project Structure
 
-The lexical analyzer project is organized into five main files, each serving a distinct purpose:
+## Tabla de Contenidos
+- [Compilador Python Simplificado  ](#compilador-python-simplificado--)
+  - [Tabla de Contenidos](#tabla-de-contenidos)
+  - [Estructura del Proyecto](#estructura-del-proyecto)
+  - [Características](#características)
+  - [Compilación](#compilación)
+  - [Uso](#uso)
 
-1. **📑 Definitions File**: Contains the definitions of Python's lexical components used in `wilcoxon.py`. Each lexical component is associated with an integer value, which the lexical analyzer returns upon recognition. This file also defines the symbol table as a vector of structures to store each lexical component and its corresponding lexeme where applicable.
+## Estructura del Proyecto
 
-2. **🔍 Lexical Analyzer File**: Hosts the core function of the project, which iterates over the source code to identify and return the next lexical component. This function interacts with the input system to read characters from the source code, using a switch statement to simulate the operation of finite automata for pattern recognition.
+El proyecto se estructura en varios componentes clave, organizados en directorios específicos para facilitar su manejo y comprensión:
 
-3. **🗃️ Symbol Table File**: Contains essential functions for managing the symbol table, including search and insertion operations. These functions prevent unnecessary duplication of lexical components within the table.
+- **analizadorLexico/**: Contiene el código fuente del analizador léxico, responsable de descomponer el código fuente en tokens léxicos.
+- **analizadorSintactico/**: Alberga el analizador sintáctico, que construye el árbol sintáctico a partir de los tokens proporcionados por el analizador léxico.
+- **sistemaEntrada/**: Gestiona la entrada de datos al compilador, leyendo el código fuente desde un archivo.
+- **tablasHash/**: Implementa una tabla de hash utilizada para el almacenamiento y recuperación eficiente de tokens durante el análisis.
+- **tablaSimbolos/**: Administra la tabla de símbolos, esencial para el seguimiento de las entidades del lenguaje.
+- **gestionErrores/**: Proporciona funcionalidades para el reporte de errores encontrados durante el análisis del código fuente.
+- **definiciones.h**: Define constantes y estructuras globales usadas a lo largo del proyecto.
 
-4. **📚 Input System File**: Manages access to the `wilcoxon.py` file, treating it as a stream of characters. It includes functions for retrieving the next character from the source code and for returning characters to the stream if needed.
+## Características
 
-5. **⚠️ Error Management File**: Handles any errors that may occur during the lexical analysis process.
+El compilador presenta las siguientes características:
+- **Análisis Léxico**: Descompone el texto de entrada en una serie de tokens, identificando los componentes léxicos del lenguaje.
+- **Análisis Sintáctico**: Construye un árbol sintáctico que representa la estructura gramatical del código fuente basado en los tokens identificados.
+- **Gestión de Errores**: Reporta errores de sintaxis y léxicos de manera clara y concisa.
+- **Tabla de Símbolos**: Realiza el seguimiento de identificadores y otras entidades del lenguaje.
+- **Flexibilidad**: Diseñado para ser extendido y adaptado a otros lenguajes o subconjuntos de lenguajes.
 
-Additionally, a driver file is suggested for invoking the lexical analyzer, displaying each lexical component found in the source code for evaluation purposes.
+## Compilación
 
-## 🛠️ Implementation Notes
+Para compilar el proyecto, asegúrate de tener instalado [GCC](https://gcc.gnu.org/) en tu sistema. El proyecto incluye un `Makefile` que simplifica el proceso de compilación.
 
-- The **📑 definitions file** should include constants for lexical components, such as `#define IMPORT 273` and `#define RETURN 274`, and the structure for the symbol table.
+Sigue estos pasos para compilar el proyecto:
 
-- The **🔍 lexical analyzer file** should implement a function, possibly named `next_lexical_component()`, that uses a switch statement and a loop to process input characters and determine the corresponding lexical component.
+1. Abre una terminal.
+2. Navega al directorio raíz del proyecto.
+3. Ejecuta el comando `make`.
 
-- The **🗃️ symbol table file** should implement search and insertion functions to manage lexical components efficiently.
+Esto generará el ejecutable en el directorio `bin/` del proyecto.
 
-- The **📚 input system file** should provide functionality to read characters from `wilcoxon.py` and manage the character stream.
+## Uso
 
-- Useful C functions for this project include `isalpha()`, `isdigit()`, `isalnum()`, `atoi()`, `atof()`, `getc()`, and `strcpy()`.
+Para utilizar el compilador con un archivo de código fuente, sigue estos pasos:
 
-## 🚀 Usage
+```
+./bin/miCompilador wilcoxon.py
+```
 
-To use the lexical analyzer, compile all the source files and run the driver program. The analyzer will process `wilcoxon.py`, identifying and displaying the lexical components found within the code.
+---
 
-## 👥 Contributing
-
-Contributions to improve the lexical analyzer are welcome. Please feel free to fork the repository, make changes, and submit a pull request with your enhancements.
+Gracias por visitar y explorar este proyecto de compilador Python Simplificado. Esperamos que este readme te haya sido de utilidad para entender tanto el uso del proyecto como su estructura. 

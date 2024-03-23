@@ -1,3 +1,9 @@
+/**
+ * @file analizadorSintactico.c
+ * @date 26/02/2024
+ * @brief Implementación de las funciones del analizador sintáctico
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "../analizadorLexico/analizadorLexico.h"
