@@ -122,6 +122,8 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
                 tokenProcesado->componente = NUM_INT;
             
                 charActual = siguienteCaracter(ficheroEntrada);
+
+                return 1; 
             }
         }
 
@@ -130,9 +132,9 @@ int seguinte_comp_lexico(token *tokenProcesado, hashTable *tabla, FILE *fichero)
             tokenProcesado->componente = NUM_FLOAT;
             
             charActual = siguienteCaracter(ficheroEntrada);
-        }
 
-        return 1; 
+            return 1; 
+        }
     }
 
     //-------------------- 3: OPERADORES --------------------

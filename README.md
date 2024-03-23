@@ -8,6 +8,8 @@ Esto es un proyecto de un compilador simple de python desarrollado para la mater
   - [Tabla de Contenidos](#tabla-de-contenidos)
   - [Estructura del Proyecto](#estructura-del-proyecto)
   - [Características](#características)
+      - [Tamaño de la tabla hash](#tamaño-de-la-tabla-hash)
+      - [Tamaño del buffer](#tamaño-del-buffer)
   - [Compilación](#compilación)
   - [Uso](#uso)
       - [Con Valgrind](#con-valgrind)
@@ -32,11 +34,25 @@ El proyecto se estructura en varios componentes clave, organizados en directorio
 
 ## Características
 
-El compilador presenta las siguientes características:
-- **Análisis Léxico**: Descompone el texto de entrada en una serie de tokens, identificando los componentes léxicos del lenguaje.
-- **Análisis Sintáctico**: Construye un árbol sintáctico que representa la estructura gramatical del código fuente basado en los tokens identificados.
-- **Gestión de Errores**: Reporta errores de sintaxis y léxicos de manera clara y concisa.
-- **Tabla de Símbolos**: Realiza el seguimiento de identificadores y otras entidades del lenguaje.
+El compilador presenta dos principales definiciones que pueden ser cambiadas:
+
+#### Tamaño de la tabla hash
+
+Esto es bastante importante cara a las gestión espacial y temporal del proyecto. Se encueentra definida en `tablaSimbolos/tablaSimbolos.c` y está por defecto definido en 64. El número ha sido adecuadamente seleccionado para provocar las mínimas colisiones posibles y asegurar la dispersión de la tabla, pero si el usuario desea comprobar el funcionamiento de la función resize puede ser cambiado. 
+
+La función de resize ha sido testeada con los números: 1, 2, 5, 10, 20, 30 y 40. Su funcionamiento ha sido correcto en todos los casos.
+
+En los primeros casos nos daremos cuenta que se producen varios resize nada más empezar el programa (lo cuál es tremendamente costoso) y funciona correctamente situando la tabla inicial en 16. 
+
+Una vez más, el tamaño recomendado es 64, pero las potencias de 2 suelen funcionar bien en las tablas hash. 
+
+#### Tamaño del buffer
+
+Por otra parte tenemos el tamaño del buffer (tanto del A como del B). Esta definición se encuentra en `sistemaEntrada/sistemaEntrada.h` y está por defecto definido en 32. Esta variable determina la capacidad de lectura que tiene el programa, pues el tamaño del buffer determina el tamaño máximo que puede tener un lexema, para evitar así errores.
+
+Está por defecto en 32 para que muestre la expcepción que se lanza si un lexema es más grande que el buffer pero puede ser modificado para ver el funcionamiento del código.
+
+Se recomienda poner un tamaño de potencia de dos como pueden ser los siguientes: 32, 64, 128, 256, 512, 1024 y 2048.
 
 ## Compilación
 
@@ -88,6 +104,8 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose .
 
 
 ## Automátas
+
+Los autómatas presentados en el código `analizadorLexico/analizadorLexico.c` son los mostrados a continuación. Cabe destacar que con objetivo de simplificar el código, pueden haberse cambiado algunas funcionalidades, siempre manteniendo la esencia de los autómatas.
 
 ### Delimitadores
 
