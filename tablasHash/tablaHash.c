@@ -255,7 +255,7 @@ unsigned int hash(char *string){
     int asciiEquivalent;
 
     //Los primos tienen una gran capacidad de dispersión
-    const unsigned int prime = 31;
+    const unsigned int prime = 67;
 
     // Utilizamos una operación XOR y una multiplicación por un número primo para mezclar los bits y mejorar la dispersión
     for(int i = 0; i < strlen(string); i++){

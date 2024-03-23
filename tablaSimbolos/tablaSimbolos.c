@@ -12,7 +12,7 @@
 #include "../definiciones.h"
 #include "tablaSimbolos.h"
 
-#define TAM_INICIAL 100 // Metemos 100 espacios para minimizar el numero de redimensiones (puedes bajarlo para probar el resize)
+#define TAM_INICIAL 64 // Metemos 128 espacios para minimizar el numero de redimensiones (puedes bajarlo para probar el resize)
 
 // Inicializacion de la tabla de símbolos con las palabras reservadas del lenguaje
 int inicializarTabla(hashTable *tabla){
