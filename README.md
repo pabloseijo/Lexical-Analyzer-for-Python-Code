@@ -37,7 +37,6 @@ El compilador presenta las siguientes características:
 - **Análisis Sintáctico**: Construye un árbol sintáctico que representa la estructura gramatical del código fuente basado en los tokens identificados.
 - **Gestión de Errores**: Reporta errores de sintaxis y léxicos de manera clara y concisa.
 - **Tabla de Símbolos**: Realiza el seguimiento de identificadores y otras entidades del lenguaje.
-- **Flexibilidad**: Diseñado para ser extendido y adaptado a otros lenguajes o subconjuntos de lenguajes.
 
 ## Compilación
 
